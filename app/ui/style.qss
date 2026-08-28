@@ -1,0 +1,180 @@
+/* ===================================================================
+   POS MODERN DARK THEME QSS
+   =================================================================== */
+
+/* --- GLOBAL STYLING --- */
+QWidget {
+    background-color: #1e293b;
+    color: #f8fafc;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+}
+
+QMainWindow, QDialog {
+    background-color: #0f172a;
+}
+
+/* --- HEADER & LABELS --- */
+QLabel {
+    color: #cbd5e1;
+}
+
+/* Heading Utama */
+QLabel#headerTitle {
+    color: #f8fafc;
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 4px;
+}
+
+/* --- INPUT FIELDS (Barcode, Nominal Uang) --- */
+QLineEdit {
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #ffffff;
+    padding: 8px 12px;
+    selection-background-color: #3b82f6;
+}
+
+QLineEdit:focus {
+    border: 2px solid #3b82f6;
+    background-color: #1e293b;
+}
+
+QLineEdit::placeholder {
+    color: #94a3b8;
+}
+
+/* --- COMBOBOX --- */
+QComboBox {
+    background-color: #334155;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #ffffff;
+    padding: 8px 12px;
+}
+
+QComboBox:focus {
+    border: 2px solid #3b82f6;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 25px;
+    border-left-width: 0px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #334155;
+    border: 1px solid #475569;
+    color: #ffffff;
+    selection-background-color: #3b82f6;
+}
+
+/* --- TABEL BELANJA --- */
+QTableWidget {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    gridline-color: #334155;
+    color: #f8fafc;
+}
+
+QTableWidget::item {
+    padding: 6px;
+}
+
+QTableWidget::item:selected {
+    background-color: #334155;
+    color: #38bdf8;
+}
+
+QHeaderView::section {
+    background-color: #0f172a;
+    color: #94a3b8;
+    padding: 10px;
+    font-weight: bold;
+    border: none;
+    border-bottom: 2px solid #334155;
+}
+
+/* --- BUTTONS --- */
+QPushButton {
+    background-color: #334155;
+    color: #f8fafc;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #475569;
+}
+
+QPushButton:pressed {
+    background-color: #1e293b;
+}
+
+/* Primary Button (Simpan / Tambah) */
+QPushButton#btnPrimary {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+QPushButton#btnPrimary:hover {
+    background-color: #1d4ed8;
+}
+
+/* Checkout Button (PROSES BAYAR [F5]) */
+QPushButton#btnCheckout {
+    background-color: #16a34a;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+QPushButton#btnCheckout:hover {
+    background-color: #15803d;
+}
+
+/* Danger Button (Hapus Item) */
+QPushButton#btnDanger {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+QPushButton#btnDanger:hover {
+    background-color: #b91c1c;
+}
+
+/* Secondary / Admin Buttons */
+QPushButton#btnSecondary {
+    background-color: #475569;
+    color: #e2e8f0;
+}
+
+QPushButton#btnSecondary:hover {
+    background-color: #64748b;
+}
+
+/* --- CARD DISPLAY TOTAL BELANJA & KEMBALIAN --- */
+QFrame#totalCard {
+    background-color: #0284c7;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+QLabel#totalLabel {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+QLabel#changeLabel {
+    font-size: 22px;
+    font-weight: bold;
+}
