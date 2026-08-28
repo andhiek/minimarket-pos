@@ -1,0 +1,5 @@
+{
+  "api_url": "http://127.0.0.1:8000/api",
+  "app_name": "Minimarket POS Client",
+  "version": "1.0.0"
+}

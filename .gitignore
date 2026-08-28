@@ -1,3 +1,10 @@
 venv/
 __pycache__/
 *.pyc
+.vscode/
+.idea/
+backups/*.db
+*.db-journal
+dist/
+build/
+*.spec
