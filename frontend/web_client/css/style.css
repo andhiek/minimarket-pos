@@ -1,0 +1,12 @@
+/* Menjadikan modal box dapat di-resize dari pojok kanan bawah */
+.modal-resizable {
+  resize: both;
+  overflow: auto;
+  min-width: 320px;
+  min-height: 250px;
+}
+
+/* Mengubah kursor saat mengarahkan mouse ke header modal */
+.modal-header-drag {
+  cursor: move;
+}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Minimarket POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  </head>
+  <body class="bg-slate-100 h-screen flex items-center justify-center font-sans">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-96 border border-slate-200">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full mb-3">
+          <i class="fa-solid fa-store text-2xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-800">Minimarket POS</h2>
+        <p class="text-xs text-slate-500 mt-1">Silakan login untuk mengakses kasir</p>
+      </div>
+
+      <div id="error-alert" class="hidden bg-red-100 text-red-700 text-xs p-3 rounded-lg mb-4 text-center"></div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-user text-sm"></i>
+            </span>
+            <input type="text" id="username" required placeholder="Masukkan username" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-lock text-sm"></i>
+            </span>
+            <input type="password" id="password" required placeholder="Masukkan password" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow-lg">Masuk ke System</button>
+      </form>
+    </div>
+
+    <script>
+      // Menggunakan relative path untuk menghindari isu CORS/Origin mismatch
+      const API_BASE_URL = "/api";
+
+      // Redirect otomatis jika pengguna sudah memiliki sesi login
+      if (localStorage.getItem("pos_current_user")) {
+        window.location.href = "index.html";
+      }
+
+      document.getElementById("login-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const errAlert = document.getElementById("error-alert");
+
+        errAlert.classList.add("hidden");
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            localStorage.setItem("pos_current_user", JSON.stringify(data));
+            window.location.href = "index.html";
+          } else {
+            errAlert.innerText = data.detail || "Login gagal! Periksa username dan password.";
+            errAlert.classList.remove("hidden");
+          }
+        } catch (err) {
+          errAlert.innerText = "Gagal terhubung ke server autentikasi.";
+          errAlert.classList.remove("hidden");
+        }
+      });
+    </script>
+  </body>
+</html>

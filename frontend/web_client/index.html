@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="id" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minimarket Billing & POS System</title>
+    <style>
+      /* CSS Variables */
+      :root[data-theme="dark"] {
+        --bg-body: #111827;
+        --bg-panel: #1f2937;
+        --bg-card: #374151;
+        --bg-input: #374151;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --border-color: #374151;
+        --primary-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-orange: #f59e0b;
+        --grand-total-bg: #030712;
+        --grand-total-text: #38bdf8;
+      }
+
+      :root[data-theme="light"] {
+        --bg-body: #f3f4f6;
+        --bg-panel: #ffffff;
+        --bg-card: #e5e7eb;
+        --bg-input: #ffffff;
+        --text-main: #111827;
+        --text-muted: #4b5563;
+        --border-color: #d1d5db;
+        --primary-blue: #2563eb;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-orange: #f59e0b;
+        --grand-total-bg: #1e293b;
+        --grand-total-text: #38bdf8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+      body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        font-size: 13px;
+        overflow: hidden;
+      }
+
+      /* Header Bar */
+      .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .theme-toggle-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .theme-toggle-btn:hover {
+        background: var(--bg-card);
+      }
+
+      .title-text {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badge-user {
+        background: #1d4ed8;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn-switch {
+        background: #d97706;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .btn-switch:hover {
+        opacity: 0.9;
+      }
+
+      /* Layout Grid */
+      .pos-layout {
+        display: flex;
+        gap: 10px;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Kiri Panel */
+      .left-column {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .form-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .form-row label {
+        width: 110px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .form-row input {
+        flex: 1;
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 8px 10px;
+        border-radius: 4px;
+        outline: none;
+        font-size: 13px;
+      }
+      .form-row input:focus {
+        border-color: var(--primary-blue);
+      }
+      .btn-action {
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .status-member {
+        color: #38bdf8;
+        font-weight: 600;
+        font-size: 12px;
+      }
+
+      /* Table Container */
+      .table-container {
+        flex: 1;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+      th {
+        background: var(--bg-card);
+        color: var(--text-muted);
+        padding: 8px 10px;
+        font-size: 12px;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+      }
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      tr:hover {
+        background: var(--bg-card);
+      }
+
+      .bottom-left-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-danger {
+        flex: 1;
+        background: var(--accent-red);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-warning {
+        flex: 1;
+        background: var(--accent-orange);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .btn-secondary {
+        flex: 1;
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      /* Kanan Panel */
+      .right-column {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--bg-panel);
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        overflow-y: auto;
+      }
+
+      .grand-total-box {
+        background: var(--grand-total-bg);
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+      }
+      .grand-total-title {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+      .grand-total-amount {
+        color: var(--grand-total-text);
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      .right-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .right-form-group label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .right-form-group input,
+      .right-form-group select {
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 13px;
+        outline: none;
+      }
+
+      .change-box {
+        margin-top: 2px;
+      }
+      .change-amount {
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--text-main);
+      }
+
+      .btn-pay-main {
+        background: var(--accent-green);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-transform: uppercase;
+        margin-top: 2px;
+      }
+      .btn-pay-main:hover {
+        opacity: 0.9;
+      }
+
+      .menu-btn {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        font-size: 12px;
+      }
+      .menu-btn:hover {
+        opacity: 0.8;
+      }
+
+      /* Modal Overlay Styling */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        width: 600px;
+        max-width: 90%;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+      }
+
+      .modal-header {
+        background: var(--bg-card);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .modal-title {
+        font-size: 15px;
+        font-weight: bold;
+      }
+      .modal-close {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .modal-close:hover {
+        color: var(--accent-red);
+      }
+
+      .modal-body {
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .modal-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        background: var(--bg-card);
+      }
+
+      .modal-grid-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .modal-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .modal-field label {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .modal-field input,
+      .modal-field select {
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 8px;
+        border-radius: 4px;
+        outline: none;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Header -->
+    <div class="top-header">
+      <div class="header-left">
+        <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Mode">🌙</button>
+        <div class="title-text">KASIR MINIMARKET</div>
+      </div>
+      <div class="header-right">
+        <div class="badge-user">👤 <span id="current-user-name">Administrator</span> (<span id="current-user-role">ADMIN</span>)</div>
+        <button class="btn-switch" id="btn-switch-user">🔒 Switch User / Logout</button>
+      </div>
+    </div>
+
+    <!-- Layout Main -->
+    <div class="pos-layout">
+      <!-- Kolom Kiri -->
+      <div class="left-column">
+        <div class="form-row">
+          <label for="barcode-input">Scan Barcode:</label>
+          <input type="text" id="barcode-input" placeholder="Scan barcode lalu tekan Enter..." autofocus />
+          <button class="btn-action" id="btn-add">Tambah</button>
+        </div>
+
+        <div class="form-row">
+          <label for="customer-phone">No. HP Member:</label>
+          <input type="text" id="customer-phone" placeholder="Masukkan No. HP Member..." />
+          <button class="btn-action" id="btn-search-member">Cari Member</button>
+        </div>
+
+        <div class="status-member">Status Member: <span id="member-name-display">Non-Member</span></div>
+
+        <!-- Tabel -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 120px">Barcode</th>
+                <th>Nama Produk</th>
+                <th style="text-align: right; width: 100px">Harga (Rp)</th>
+                <th style="text-align: center; width: 60px">Qty</th>
+                <th style="text-align: right; width: 100px">Subtotal (Rp)</th>
+              </tr>
+            </thead>
+            <tbody id="cart-table-body">
+              <!-- Items -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bottom-left-btns">
+          <button class="btn-danger" id="btn-delete-item">Hapus Item [Del]</button>
+          <button class="btn-warning" id="btn-hold">Tahan Transaksi (Hold)</button>
+          <button class="btn-secondary" id="btn-pending">Buka Pending (0)</button>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan -->
+      <div class="right-column">
+        <div class="grand-total-box">
+          <div class="grand-total-title">TOTAL BELANJA / GRAND TOTAL</div>
+          <div class="grand-total-amount" id="grand-total-display">Rp 0</div>
+        </div>
+
+        <div class="right-form-group">
+          <label for="discount-input">Diskon Nominal (Rp):</label>
+          <input type="number" id="discount-input" value="0" min="0" />
+        </div>
+
+        <div class="right-form-group">
+          <label for="payment-method">Metode Pembayaran:</label>
+          <select id="payment-method">
+            <option value="CASH">CASH</option>
+            <option value="QRIS">QRIS / DEBIT</option>
+          </select>
+        </div>
+
+        <div class="right-form-group">
+          <label for="paid-amount">Uang Dibayar (Rp):</label>
+          <input type="number" id="paid-amount" placeholder="0" />
+        </div>
+
+        <div class="change-box">
+          <div style="color: var(--text-muted); font-size: 11px; font-weight: 600">Kembalian:</div>
+          <div class="change-amount" id="change-display">Rp 0</div>
+        </div>
+
+        <button class="menu-btn" style="margin-top: 2px" id="btn-reprint">🔄 Cetak Ulang Struk</button>
+
+        <button class="btn-pay-main" id="btn-pay-main">PROSES BAYAR [F5]</button>
+
+        <!-- Navigasi Modal Admin -->
+        <button class="menu-btn" id="btn-modal-products">Kelola Produk (Admin)</button>
+        <button class="menu-btn" id="btn-modal-members">Manajemen Member _Poin</button>
+        <button class="menu-btn" id="btn-modal-reports">Laporan Harian / Laba</button>
+        <button class="menu-btn" id="btn-modal-receipt-settings">⚙ Setting Struk</button>
+      </div>
+    </div>
+
+    <!-- POP-UP MODAL CONTAINER -->
+
+    <!-- 1. Modal Kelola Produk -->
+    <div class="modal-overlay" id="modal-products">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">📦 Kelola Produk (Tambah / Edit Stok)</div>
+          <button class="modal-close" onclick="closeModal('modal-products')">✖</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-grid-form">
+            <div class="modal-field">
+              <label>Barcode:</label>
+              <input type="text" id="p-barcode" placeholder="899..." />
+            </div>
+            <div class="modal-field">
+              <label>Nama Produk:</label>
+              <input type="text" id="p-name" placeholder="Nama Barang" />
+            </div>
+            <div class="modal-field">
+              <label>Harga Jual (Rp):</label>
+              <input type="number" id="p-price" placeholder="10000" />
+            </div>
+            <div class="modal-field">
+              <label>Harga Modal/Beli (Rp):</label>
+              <input type="number" id="p-cost" placeholder="8000" />
+            </div>
+            <div class="modal-field">
+              <label>Stok Awal:</label>
+              <input type="number" id="p-stock" placeholder="50" />
+            </div>
+          </div>
+          <button class="btn-action" style="margin-top: 5px" id="btn-save-product">Simpan Produk Baru</button>
+          <hr style="border-color: var(--border-color); margin: 5px 0" />
+          <div style="font-weight: bold; font-size: 12px">Daftar Produk Terdaftar:</div>
+          <div class="table-container" style="max-height: 200px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Barcode</th>
+                  <th>Nama</th>
+                  <th style="text-align: right">Harga</th>
+                  <th style="text-align: center">Stok</th>
+                </tr>
+              </thead>
+              <tbody id="product-list-tbody">
+                <!-- Data Produk -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modal-products')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Modal Manajemen Member -->
+    <div class="modal-overlay" id="modal-members">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">👤 Manajemen Member & Poin</div>
+          <button class="modal-close" onclick="closeModal('modal-members')">✖</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-grid-form">
+            <div class="modal-field">
+              <label>Nama Member:</label>
+              <input type="text" id="m-name" placeholder="Nama Pelanggan" />
+            </div>
+            <div class="modal-field">
+              <label>No. Telepon / HP:</label>
+              <input type="text" id="m-phone" placeholder="081234567890" />
+            </div>
+          </div>
+          <button class="btn-action" style="margin-top: 5px" id="btn-save-member">Daftar Member Baru</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modal-members')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Modal Laporan Harian -->
+    <div class="modal-overlay" id="modal-reports">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">📊 Laporan Penjualan & Laba Harian</div>
+          <button class="modal-close" onclick="closeModal('modal-reports')">✖</button>
+        </div>
+        <div class="modal-body">
+          <div style="display: flex; gap: 10px; font-size: 14px">
+            <div style="flex: 1; background: var(--bg-card); padding: 12px; border-radius: 4px; text-align: center">
+              <div style="color: var(--text-muted); font-size: 11px">TOTAL OMSET HARIAN</div>
+              <div style="font-weight: bold; font-size: 18px; color: var(--accent-green)" id="report-omset">Rp 0</div>
+            </div>
+            <div style="flex: 1; background: var(--bg-card); padding: 12px; border-radius: 4px; text-align: center">
+              <div style="color: var(--text-muted); font-size: 11px">ESTIMASI LABA BERSIH</div>
+              <div style="font-weight: bold; font-size: 18px; color: var(--grand-total-text)" id="report-profit">Rp 0</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modal-reports')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Modal Setting Struk -->
+    <div class="modal-overlay" id="modal-receipt-settings">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">⚙ Setting Header & Footer Struk</div>
+          <button class="modal-close" onclick="closeModal('modal-receipt-settings')">✖</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-field">
+            <label>Nama Toko:</label>
+            <input type="text" id="s-store-name" value="MINIMARKET POS" />
+          </div>
+          <div class="modal-field">
+            <label>Alamat Toko:</label>
+            <input type="text" id="s-store-address" value="Jl. Raya Minimarket No. 123" />
+          </div>
+          <div class="modal-field">
+            <label>Pesan Footer Struk:</label>
+            <input type="text" id="s-footer-msg" value="Terima Kasih Telah Berbelanja!" />
+          </div>
+          <button class="btn-action" style="margin-top: 8px" id="btn-save-settings">Simpan Pengaturan</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modal-receipt-settings')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Buka Pending / Tahan Transaksi -->
+    <div class="modal-overlay" id="modal-pending">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">⏸️ Daftar Transaksi Pending (Hold)</div>
+          <button class="modal-close" onclick="closeModal('modal-pending')">✖</button>
+        </div>
+        <div class="modal-body">
+          <div class="table-container" style="max-height: 250px">
+            <table>
+              <thead>
+                <tr>
+                  <th>Waktu Hold</th>
+                  <th>Member / Info</th>
+                  <th style="text-align: center">Total Item</th>
+                  <th style="text-align: right">Total Belanja</th>
+                  <th style="text-align: center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pending-list-tbody">
+                <!-- Data Transaksi Pending -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modal-pending')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Preview & Cetak Struk Kasir -->
+    <div class="modal-overlay" id="modal-receipt">
+      <div class="modal-card" style="width: 380px">
+        <div class="modal-header">
+          <div class="modal-title">📄 Cetak Struk Belanja</div>
+          <button class="modal-close" onclick="closeModal('modal-receipt')">✖</button>
+        </div>
+        <div class="modal-body" style="background: #ffffff; color: #000000; font-family: &quot;Courier New&quot;, Courier, monospace; padding: 15px; font-size: 12px; line-height: 1.4">
+          <!-- Area Struk Siap Print -->
+          <div id="receipt-print-area">
+            <div style="text-align: center; font-weight: bold; font-size: 14px" id="r-store-name">MINIMARKET POS</div>
+            <div style="text-align: center; font-size: 11px" id="r-store-address">Jl. Raya Minimarket No. 123</div>
+            <div style="text-align: center; font-size: 11px; margin-bottom: 5px">================================</div>
+
+            <div style="display: flex; justify-content: space-between">
+              <span>No: <span id="r-invoice">-</span></span>
+              <span id="r-date">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <span>Kasir: <span id="r-cashier">Admin</span></span>
+              <span>Member: <span id="r-member">-</span></span>
+            </div>
+            <div style="text-align: center; font-size: 11px; margin: 5px 0">--------------------------------</div>
+
+            <!-- List Item Struk -->
+            <div id="r-items-list"></div>
+
+            <div style="text-align: center; font-size: 11px; margin: 5px 0">--------------------------------</div>
+            <div style="display: flex; justify-content: space-between">
+              <span>Subtotal:</span>
+              <span id="r-subtotal">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <span>Diskon:</span>
+              <span id="r-discount">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px">
+              <span>TOTAL:</span>
+              <span id="r-grand-total">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 2px">
+              <span>Bayar (<span id="r-method">CASH</span>):</span>
+              <span id="r-paid">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between">
+              <span>Kembali:</span>
+              <span id="r-change">Rp 0</span>
+            </div>
+
+            <div style="text-align: center; font-size: 11px; margin-top: 10px">================================</div>
+            <div style="text-align: center; font-size: 11px; font-weight: bold" id="r-footer-msg">Terima Kasih Telah Berbelanja!</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-action" onclick="printReceipt()">🖨️ Cetak Struk</button>
+          <button class="btn-secondary" onclick="closeModal('modal-receipt')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

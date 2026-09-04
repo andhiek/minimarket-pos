@@ -1,10 +1,7 @@
 import enum
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, List
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import relationship
-from app.database import Base
+from typing import Optional, List, ClassVar
 from sqlmodel import Field, SQLModel, Relationship
 
 
@@ -15,12 +12,14 @@ class PaymentMethod(str, enum.Enum):
 
 
 class Transaction(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "transactions"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     invoice_number: str = Field(index=True, unique=True)
     created_at: datetime = Field(default_factory=datetime.now)
     
-    # Audit Kasir Bertugas
-    cashier_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    # Menunjuk ke tabel "users.id"
+    cashier_id: Optional[int] = Field(default=None, foreign_key="users.id")
     cashier_name: str
     
     grand_total: Decimal = Field(default=Decimal("0.00"))
@@ -30,9 +29,12 @@ class Transaction(SQLModel, table=True):
 
     items: List["TransactionItem"] = Relationship(back_populates="transaction")
 
+
 class TransactionItem(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "transaction_items"
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    transaction_id: Optional[int] = Field(default=None, foreign_key="transaction.id")
+    transaction_id: Optional[int] = Field(default=None, foreign_key="transactions.id")
     product_id: int
     product_name: str
     price: Decimal

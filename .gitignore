@@ -8,3 +8,8 @@ backups/*.db
 dist/
 build/
 *.spec
+
+build/
+dist/
+*.spec
+backups/*.db
