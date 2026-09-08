@@ -644,7 +644,6 @@ if (btnReprint) {
 // -----------------------------------------------------------------------------
 // 7. ADMIN MODALS API LOGIC (Fungsi Kelola Produk, Member, & Laporan)
 // -----------------------------------------------------------------------------
-// Tambah / Simpan Produk Baru dari Modal
 if (document.getElementById("btn-save-product")) {
   document.getElementById("btn-save-product").onclick = async () => {
     const barcode = document.getElementById("p-barcode").value.trim();
@@ -652,6 +651,7 @@ if (document.getElementById("btn-save-product")) {
     const price = parseFloat(document.getElementById("p-price").value) || 0;
     const purchase_price = parseFloat(document.getElementById("p-cost").value) || 0;
     const stock = parseInt(document.getElementById("p-stock").value) || 0;
+    const category = document.getElementById("p-category") ? document.getElementById("p-category").value : "Umum";
 
     if (!barcode || !name || price <= 0) {
       alert("Isi barcode, nama, dan harga dengan benar!");
@@ -668,6 +668,7 @@ if (document.getElementById("btn-save-product")) {
           price: price,
           purchase_price: purchase_price,
           stock: stock,
+          category: category, // MENGIRIM KATEGORI KE BACKEND
         }),
       });
 
@@ -678,6 +679,7 @@ if (document.getElementById("btn-save-product")) {
         document.getElementById("p-price").value = "";
         document.getElementById("p-cost").value = "";
         document.getElementById("p-stock").value = "";
+        if (document.getElementById("p-category")) document.getElementById("p-category").value = "Umum";
         loadProductList();
       } else {
         const errData = await res.json();
@@ -702,10 +704,12 @@ async function loadProductList() {
       const products = await res.json();
       products.forEach((p) => {
         const itemPrice = p.price ?? p.selling_price ?? 0;
+        const itemCategory = p.category || "Umum";
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${p.barcode}</td>
           <td>${p.name}</td>
+          <td><span style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${itemCategory}</span></td>
           <td style="text-align: right;">${formatRupiah(itemPrice)}</td>
           <td style="text-align: center;">${p.stock}</td>
         `;
