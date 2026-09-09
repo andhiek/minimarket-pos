@@ -30,14 +30,15 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(BaseModel):
+    barcode: Optional[str] = None  # <-- Tambahkan ini
     name: Optional[str] = None
     cost_price: Optional[Decimal] = None
     selling_price: Optional[Decimal] = None
     stock: Optional[int] = None
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
-
-
+    
+    
 class ProductResponse(ProductBase):
     id: int
     is_active: bool

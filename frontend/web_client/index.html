@@ -98,7 +98,7 @@
         <button class="btn-pay-main" id="btn-pay-main">PROSES BAYAR [F5]</button>
 
         <!-- Navigasi Modal Admin -->
-        <button class="menu-btn" id="btn-modal-products">Kelola Produk (Admin)</button>
+        <a href="products.html" target="_blank" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📊 Kelola Produk (Excel View)</a>
         <button class="menu-btn" id="btn-modal-members">Manajemen Member _Poin</button>
         <button class="menu-btn" id="btn-modal-reports">Laporan Harian / Laba</button>
         <button class="menu-btn" id="btn-modal-receipt-settings">⚙ Setting Struk</button>
@@ -108,14 +108,14 @@
     <!-- POP-UP MODAL CONTAINER -->
 
     <!-- 1. Modal Kelola Produk -->
-    <!-- Modal Kelola Produk -->
     <div class="modal-overlay" id="modal-products">
       <div class="modal-card">
         <div class="modal-header">
-          <div class="modal-title">📦 Kelola Produk (Tambah / Edit Stok)</div>
+          <div class="modal-title">📦 Kelola Produk (Tambah / Edit / Import CSV)</div>
           <button class="modal-close" onclick="closeModal('modal-products')">✖</button>
         </div>
         <div class="modal-body">
+          <!-- Section Form Manual -->
           <div class="modal-grid-form">
             <div class="modal-field">
               <label>Barcode:</label>
@@ -137,7 +137,6 @@
               <label>Stok Awal:</label>
               <input type="number" id="p-stock" placeholder="50" />
             </div>
-            <!-- TAMBAHAN: Field Dropdown Kategori -->
             <div class="modal-field">
               <label>Kategori:</label>
               <select id="p-category">
@@ -151,7 +150,20 @@
             </div>
           </div>
           <button class="btn-action" style="margin-top: 5px" id="btn-save-product">Simpan Produk Baru</button>
-          <hr style="border-color: var(--border-color); margin: 5px 0" />
+
+          <hr style="border-color: var(--border-color); margin: 10px 0" />
+
+          <!-- Section Import/Export CSV -->
+          <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap">
+            <div style="display: flex; gap: 5px; align-items: center">
+              <input type="file" id="csv-file-input" accept=".csv" style="font-size: 12px; width: 180px" />
+              <button class="btn-secondary" id="btn-import-csv" style="padding: 4px 8px; font-size: 12px">📥 Import CSV</button>
+            </div>
+            <button class="btn-secondary" id="btn-export-csv" style="padding: 4px 8px; font-size: 12px">📤 Export CSV</button>
+          </div>
+
+          <hr style="border-color: var(--border-color); margin: 10px 0" />
+
           <div style="font-weight: bold; font-size: 12px">Daftar Produk Terdaftar:</div>
           <div class="table-container" style="max-height: 200px">
             <table>
@@ -160,7 +172,6 @@
                   <th>Barcode</th>
                   <th>Nama</th>
                   <th>Kategori</th>
-                  <!-- TAMBAHAN: Header Kolom Kategori -->
                   <th style="text-align: right">Harga</th>
                   <th style="text-align: center">Stok</th>
                 </tr>

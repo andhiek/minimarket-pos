@@ -787,3 +787,46 @@ document.addEventListener("keydown", (e) => {
     if (btnDeleteItem) btnDeleteItem.click();
   }
 });
+
+// -----------------------------------------------------------------------------
+// 9. CSV IMPORT & EXPORT (Fitur Impor & Ekspor Produk dalam Format CSV)
+// -----------------------------------------------------------------------------
+
+// Export CSV Produk
+if (document.getElementById("btn-export-csv")) {
+  document.getElementById("btn-export-csv").onclick = () => {
+    window.open(`${API_BASE_URL}/products/export-csv`, "_blank");
+  };
+}
+
+// Import CSV Produk
+if (document.getElementById("btn-import-csv")) {
+  document.getElementById("btn-import-csv").onclick = async () => {
+    const fileInput = document.getElementById("csv-file-input");
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert("Pilih file CSV terlebih dahulu!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/products/import-csv`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        fileInput.value = "";
+        loadProductList(); // Refresh tabel
+      } else {
+        alert(`Gagal import: ${data.detail || "Terjadi kesalahan"}`);
+      }
+    } catch (err) {
+      alert("Koneksi gagal saat upload file!");
+    }
+  };
+}
