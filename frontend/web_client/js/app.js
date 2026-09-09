@@ -460,10 +460,12 @@ if (btnPayMain) {
     }
 
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    // Di dalam btnPayMain.onclick:
+    const paymentMethodInput = document.getElementById("payment-method");
+    const paymentMethod = paymentMethodInput ? paymentMethodInput.value : "CASH";
     const discount = parseFloat(discountInput.value) || 0;
     const grandTotal = Math.max(0, subtotal - discount);
     const paidAmount = parseFloat(paidAmountInput.value) || 0;
-    const paymentMethod = document.getElementById("payment-method").value;
 
     if (paidAmount < grandTotal) {
       alert("Uang Pembayaran Masih Kurang!");
@@ -756,17 +758,68 @@ if (document.getElementById("btn-save-member")) {
 /**
  * Memuat data ringkasan laporan penjualan harian dari backend
  */
+/**
+ * Memuat data ringkasan laporan penjualan harian dari backend
+ */
 async function loadReports() {
   try {
     const res = await fetch(`${API_BASE_URL}/reports/daily-summary`);
     if (res.ok) {
       const data = await res.json();
-      document.getElementById("report-omset").innerText = formatRupiah(data.total_sales || 0);
-      document.getElementById("report-profit").innerText = formatRupiah(data.total_profit || 0);
+
+      // Ambil summary dari response API (dengan fallback kompatibilitas)
+      const summary = data.summary || data;
+
+      document.getElementById("report-omset").innerText = formatRupiah(summary.total_sales || 0);
+      document.getElementById("report-profit").innerText = formatRupiah(summary.total_profit || 0);
+
+      // Render Breakdown Metode Pembayaran jika elemen kontainernya ada
+      renderModalPaymentBreakdown(summary.payment_breakdown || {});
     }
   } catch (err) {
     console.error("Gagal muat laporan", err);
   }
+}
+
+/**
+ * Helper untuk merender kartu rekapitulasi pembayaran di modal laporan harian
+ */
+function renderModalPaymentBreakdown(breakdown) {
+  const container = document.getElementById("report-payment-breakdown");
+  if (!container) return;
+
+  const defaultMethods = ["CASH", "QRIS", "DEBIT", "TRANSFER"];
+  const colors = {
+    CASH: "#10b981", // Hijau
+    QRIS: "#3b82f6", // Biru
+    DEBIT: "#f59e0b", // Oranye/Kuning
+    TRANSFER: "#8b5cf6", // Ungu
+  };
+
+  const allMethods = {};
+  defaultMethods.forEach((method) => {
+    allMethods[method] = breakdown[method] || 0;
+  });
+
+  Object.keys(breakdown).forEach((method) => {
+    if (!allMethods.hasOwnProperty(method)) {
+      allMethods[method] = breakdown[method];
+    }
+  });
+
+  container.innerHTML = Object.entries(allMethods)
+    .map(([method, total]) => {
+      const borderColor = colors[method] || "#6b7280";
+      return `
+        <div style="background: rgba(255, 255, 255, 0.05); border-left: 4px solid ${borderColor}; padding: 8px 12px; border-radius: 6px; flex: 1; min-width: 120px;">
+          <small style="color: #aaa; text-transform: uppercase; font-size: 10px; font-weight: bold;">${method}</small>
+          <div style="font-size: 14px; font-weight: bold; color: #fff; margin-top: 2px;">
+            ${formatRupiah(total || 0)}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 // -----------------------------------------------------------------------------

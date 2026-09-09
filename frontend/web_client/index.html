@@ -78,8 +78,10 @@
         <div class="right-form-group">
           <label for="payment-method">Metode Pembayaran:</label>
           <select id="payment-method">
-            <option value="CASH">CASH</option>
-            <option value="QRIS">QRIS / DEBIT</option>
+            <option value="CASH">CASH / TUNAI</option>
+            <option value="QRIS">QRIS</option>
+            <option value="DEBIT">KARTU DEBIT / EDC</option>
+            <option value="TRANSFER">TRANSFER BANK</option>
           </select>
         </div>
 
@@ -97,10 +99,10 @@
 
         <button class="btn-pay-main" id="btn-pay-main">PROSES BAYAR [F5]</button>
 
-        <!-- Navigasi Modal Admin -->
+        <!-- Navigasi Menu Kanan -->
         <a href="products.html" target="_blank" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📊 Kelola Produk (Excel View)</a>
         <button class="menu-btn" id="btn-modal-members">Manajemen Member _Poin</button>
-        <button class="menu-btn" id="btn-modal-reports">Laporan Harian / Laba</button>
+        <a href="reports.html" target="_blank" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📈 Laporan Harian / Laba</a>
         <button class="menu-btn" id="btn-modal-receipt-settings">⚙ Setting Struk</button>
       </div>
     </div>

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="id" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laporan Penjualan - Minimarket POS</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/reports.css" />
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <div class="top-header">
+      <div class="brand-title"><span>📈</span> LAPORAN PENJUALAN</div>
+      <nav class="main-nav">
+        <a href="index.html">Kasir</a>
+        <a href="products.html">Kelola Produk</a>
+        <a href="reports.html" class="active">Laporan</a>
+      </nav>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <div class="main-wrapper">
+      <!-- Toolbar / Filter Control + Import Export -->
+      <div class="toolbar-panel">
+        <div class="filter-controls">
+          <div class="toolbar-group">
+            <label for="report-type">Jenis:</label>
+            <select id="report-type">
+              <option value="daily">Harian</option>
+              <option value="monthly" selected>Bulanan</option>
+            </select>
+          </div>
+
+          <div class="toolbar-group" id="daily-filter" style="display: none">
+            <label for="date-picker">Tanggal:</label>
+            <input type="date" id="date-picker" />
+          </div>
+
+          <div class="toolbar-group" id="monthly-filter">
+            <label for="month-picker">Bulan:</label>
+            <input type="month" id="month-picker" />
+          </div>
+
+          <button class="btn-excel btn-primary-action" id="btn-load-report">Tampilkan Laporan</button>
+        </div>
+
+        <!-- Area Tombol Import / Export -->
+        <div class="action-controls">
+          <input type="file" id="import-csv-file" accept=".csv" style="display: none" />
+          <button class="btn-excel btn-secondary-action" id="btn-import-csv" onclick="document.getElementById('import-csv-file').click()">📥 Import CSV</button>
+          <button class="btn-excel btn-success-action" id="btn-export-csv">📤 Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Metric Cards -->
+      <div class="kpi-container">
+        <div class="kpi-card tx">
+          <div class="kpi-title">Total Transaksi</div>
+          <div class="kpi-value" id="stat-total-tx">0</div>
+        </div>
+        <div class="kpi-card omset">
+          <div class="kpi-title">Total Penjualan (Omset)</div>
+          <div class="kpi-value" id="stat-total-sales">Rp 0</div>
+        </div>
+        <div class="kpi-card profit">
+          <div class="kpi-title">Estimasi Laba Bersih</div>
+          <div class="kpi-value" id="stat-total-profit">Rp 0</div>
+        </div>
+        <!-- Rekap Metode Pembayaran -->
+        <div id="payment-breakdown-container" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+          <!-- Badge rincian pembayaran (CASH, QRIS, TRANSFER) akan di-render dinamis oleh JS di sini -->
+        </div>
+      </div>
+
+      <!-- Excel / Grid Table Container -->
+      <div class="excel-grid-container">
+        <table class="excel-table">
+          <thead>
+            <tr>
+              <th style="width: 50px" class="text-center">No</th>
+              <th style="width: 200px">No Invoice</th>
+              <th style="width: 120px">Jam</th>
+              <th style="width: 160px">Kasir</th>
+              <th style="width: 140px">Metode Pembayaran</th>
+              <th style="width: 180px" class="text-right">Total Transaksi</th>
+            </tr>
+          </thead>
+          <tbody id="report-table-body">
+            <tr>
+              <td colspan="6" class="text-center" style="padding: 30px; color: var(--text-muted)">Tidak ada data transaksi.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal Detail Transaksi -->
+    <div id="modal-detail" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-invoice-no">Detail Transaksi</h3>
+          <button class="btn-close" onclick="closeDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-grid">
+            <div><strong>Waktu:</strong> <span id="modal-date-time">-</span></div>
+            <div><strong>Kasir:</strong> <span id="modal-cashier">-</span></div>
+            <div><strong>Metode:</strong> <span id="modal-payment-method">-</span></div>
+          </div>
+          <hr class="modal-divider" />
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>Produk</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Harga</th>
+                <th class="text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="modal-items-body">
+              <!-- Item transaksi disisipkan di sini -->
+            </tbody>
+          </table>
+          <hr class="modal-divider" />
+          <div class="summary-details">
+            <div class="summary-row"><span>Total:</span><strong id="modal-grand-total">Rp 0</strong></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeDetailModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/reports.js"></script>
+  </body>
+</html>
