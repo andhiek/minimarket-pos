@@ -66,6 +66,7 @@ function checkAuthStatus() {
     return;
   }
   updateUserDisplay();
+  applyRolePermissions();
 }
 
 /**
@@ -165,12 +166,24 @@ async function handleAddProduct() {
       const products = await res.json();
 
       if (products.length === 1) {
-        // Jika hasil tepat 1 produk (biasanya scan barcode)
-        addToCart(products[0]);
+        const rawProduct = products[0];
+
+        // Ambil selling_price dari backend, kalau tidak ada baru cek price
+        const itemPrice = Number(rawProduct.selling_price ?? rawProduct.price) || 0;
+
+        const productData = {
+          id: rawProduct.id,
+          barcode: rawProduct.barcode,
+          name: rawProduct.name,
+          price: itemPrice, // Sudah dipastikan mengambil harga jual yang benar
+          stock: rawProduct.stock,
+          purchase_price: rawProduct.purchase_price || 0,
+        };
+
+        addToCart(productData);
         barcodeInput.value = "";
         barcodeInput.focus();
       } else if (products.length > 1) {
-        // Jika ditemukan beberapa produk dengan nama mirip (misal ketik "air")
         showProductSearchResults(products);
       } else {
         alert("Produk tidak ditemukan!");
@@ -179,6 +192,7 @@ async function handleAddProduct() {
       alert("Gagal mencari produk!");
     }
   } catch (err) {
+    console.error("Error backend search:", err);
     alert("Gagal terhubung ke server backend!");
   }
 }
@@ -198,7 +212,8 @@ if (btnAdd) btnAdd.addEventListener("click", handleAddProduct);
 function showProductSearchResults(products) {
   let optionsText = "Beberapa produk ditemukan, pilih nomor produk:\n\n";
   products.forEach((p, index) => {
-    const price = p.price ?? p.selling_price ?? 0;
+    // Ambil harga dari selling_price terlebih dahulu
+    const price = Number(p.selling_price ?? p.price) || 0;
     optionsText += `${index + 1}. [${p.barcode}] ${p.name} - ${formatRupiah(price)} (Stok: ${p.stock})\n`;
   });
 
@@ -206,7 +221,21 @@ function showProductSearchResults(products) {
   const selectedIndex = parseInt(choice) - 1;
 
   if (!isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < products.length) {
-    addToCart(products[selectedIndex]);
+    const selected = products[selectedIndex];
+
+    // Mengambil nilai harga jual yang benar
+    const selectedPrice = Number(selected.selling_price ?? selected.price) || 0;
+
+    // Normalisasi properti harga sebelum masuk ke keranjang
+    addToCart({
+      id: selected.id,
+      barcode: selected.barcode,
+      name: selected.name,
+      price: selectedPrice,
+      stock: selected.stock,
+      purchase_price: selected.purchase_price || 0,
+    });
+
     barcodeInput.value = "";
     barcodeInput.focus();
   } else if (choice !== null) {
@@ -240,14 +269,22 @@ if (btnSearchMember) {
  * Jika item sudah ada di keranjang, jumlah kuantitas akan ditambah 1.
  * @param {Object} product - Data objek produk dari database
  */
+/**
+ * Menambahkan objek produk ke dalam array `cart`.
+ * Jika item sudah ada di keranjang, jumlah kuantitas akan ditambah 1.
+ * @param {Object} product - Data objek produk dari database
+ */
 function addToCart(product) {
+  if (!product) return;
+
   if (product.stock <= 0) {
     alert(`Stok '${product.name}' habis!`);
     return;
   }
 
-  // Menggunakan atribut price (dengan fallback ke selling_price untuk kompatibilitas)
-  const itemPrice = parseFloat(product.price ?? product.selling_price ?? 0);
+  // Memastikan mengambil atribut harga jual yang benar dan mengonversinya ke Number
+  const rawPrice = product.price !== undefined && product.price !== null ? product.price : product.selling_price;
+  const itemPrice = Number(rawPrice) || 0;
 
   const existing = cart.find((item) => item.product_id === product.id);
   if (existing) {
@@ -266,6 +303,8 @@ function addToCart(product) {
       max_stock: product.stock,
     });
   }
+
+  selectedCartIndex = -1;
   renderCart();
 }
 
@@ -273,6 +312,7 @@ function addToCart(product) {
  * Merender ulang elemen HTML tabel keranjang belanja berdasarkan data dalam array `cart`
  */
 function renderCart() {
+  if (!cartTableBody) return;
   cartTableBody.innerHTML = "";
   let subtotal = 0;
 
@@ -299,10 +339,10 @@ function renderCart() {
     cartTableBody.appendChild(tr);
   });
 
-  const discount = parseFloat(discountInput.value) || 0;
+  const discount = parseFloat(discountInput ? discountInput.value : 0) || 0;
   const grandTotal = Math.max(0, subtotal - discount);
 
-  grandTotalDisplay.innerText = formatRupiah(grandTotal);
+  if (grandTotalDisplay) grandTotalDisplay.innerText = formatRupiah(grandTotal);
   calculateChange();
 }
 
@@ -882,4 +922,32 @@ if (document.getElementById("btn-import-csv")) {
       alert("Koneksi gagal saat upload file!");
     }
   };
+}
+
+// -----------------------------------------------------------------------------
+// 10. ROLE-BASED ACCESS CONTROL (Pembatasan Akses Kasir vs Admin)
+// -----------------------------------------------------------------------------
+/**
+ * Mengatur visibilitas tombol berdasarkan Role User (Admin vs Kasir)
+ */
+/**
+ * Mengatur hak akses fitur UI berdasarkan Role User (Admin vs Kasir)
+ */
+function applyRolePermissions() {
+  if (!currentUser) return;
+
+  const isKasir = (currentUser.role || "").toLowerCase() === "kasir" || (currentUser.role || "").toLowerCase() === "cashier";
+
+  const btnReports = document.getElementById("btn-modal-reports");
+  const btnReceiptSettings = document.getElementById("btn-modal-receipt-settings");
+
+  if (isKasir) {
+    // Sembunyikan Akses Laporan Keuangan & Pengaturan Struk untuk Kasir
+    if (btnReports) btnReports.style.display = "none";
+    if (btnReceiptSettings) btnReceiptSettings.style.display = "none";
+  } else {
+    // Tampilkan semua fitur untuk Admin
+    if (btnReports) btnReports.style.display = "";
+    if (btnReceiptSettings) btnReceiptSettings.style.display = "";
+  }
 }

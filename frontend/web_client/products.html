@@ -5,182 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manajemen Produk - Spreadsheet View</title>
     <link rel="stylesheet" href="css/style.css" />
-    <style>
-      body {
-        padding: 15px;
-        background-color: var(--bg-body, #1e1e2e);
-        color: var(--text-main, #cdd6f4);
-        font-family: sans-serif;
-      }
-      .header-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-      .top-controls {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .left-controls {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-      .right-controls {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .search-input {
-        width: 280px;
-        background: #181825;
-        border: 1px solid #45475a;
-        color: #cdd6f4;
-        padding: 8px 12px;
-        border-radius: 4px;
-        font-size: 13px;
-        outline: none;
-      }
-      .search-input:focus {
-        border-color: #89b4fa;
-      }
-      .btn-top {
-        padding: 8px 14px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
-        border: none;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .btn-add {
-        background: #a6e3a1;
-        color: #11111b;
-      }
-      .btn-add:hover {
-        background: #94e2d5;
-      }
-      .btn-export {
-        background: #89b4fa;
-        color: #11111b;
-      }
-      .btn-export:hover {
-        background: #b4befe;
-      }
-      .btn-import {
-        background: #fab387;
-        color: #11111b;
-      }
-      .btn-import:hover {
-        background: #f9e2af;
-      }
-      .btn-bulk-delete {
-        background: #f38ba8;
-        color: #11111b;
-        display: none;
-      }
-      .btn-bulk-delete:hover {
-        background: #eba0ac;
-      }
-      .btn-back {
-        background: #313244;
-        color: #cdd6f4;
-        padding: 8px 12px;
-        border: 1px solid #45475a;
-        border-radius: 4px;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 13px;
-      }
-      .excel-table-container {
-        overflow-x: auto;
-        background: var(--bg-card, #181825);
-        border: 1px solid var(--border-color, #313244);
-        border-radius: 6px;
-        max-height: calc(100vh - 160px);
-      }
-      table.excel-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-      }
-      table.excel-table th,
-      table.excel-table td {
-        border: 1px solid #313244;
-        padding: 6px 8px;
-        text-align: left;
-      }
-      table.excel-table th {
-        background: #2a2b3d;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        font-weight: 600;
-      }
-      table.excel-table tr:hover {
-        background: rgba(255, 255, 255, 0.04);
-      }
-      .excel-input,
-      .excel-select {
-        width: 100%;
-        background: #313244;
-        border: 1px solid #89b4fa;
-        color: #cdd6f4;
-        font-size: 13px;
-        outline: none;
-        padding: 3px 5px;
-        border-radius: 3px;
-        box-sizing: border-box;
-      }
-      .btn-action {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        padding: 2px 4px;
-        border-radius: 3px;
-      }
-      .btn-action:hover {
-        background: #313244;
-      }
-      .cell-text {
-        cursor: pointer;
-        display: block;
-        min-height: 20px;
-      }
-      input[type="checkbox"] {
-        cursor: pointer;
-        accent-color: #89b4fa;
-        width: 15px;
-        height: 15px;
-      }
-    </style>
+    <link rel="stylesheet" href="css/product.css" />
+    <style></style>
   </head>
   <body>
     <div class="header-bar">
       <h2>📊 Database Produk (Excel View)</h2>
-      <button onclick="window.close()" class="btn-back">❌ Tutup Tab</button>
+      <div class="nav-tabs">
+        <a href="index.html" class="nav-tab-item">Kasir</a>
+        <a href="products.html" class="nav-tab-item active">Kelola Produk</a>
+        <a href="reports.html" class="nav-tab-item" id="nav-reports">Laporan</a>
+      </div>
     </div>
 
     <!-- Controls Atas -->
     <div class="top-controls">
       <div class="left-controls">
-        <input type="text" id="search-input" class="search-input" placeholder="🔍 Cari nama produk atau barcode..." oninput="filterProducts()" />
-        <button id="btn-bulk-delete" class="btn-top btn-bulk-delete" onclick="deleteSelectedRows()">🗑️ Hapus Terpilih (<span id="selected-count">0</span>)</button>
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 Cari nama produk atau barcode..." />
+        <button id="btn-bulk-delete" class="btn-top btn-bulk-delete">🗑️ Hapus Terpilih (<span id="selected-count">0</span>)</button>
       </div>
 
-      <div class="right-controls">
-        <input type="file" id="import-file" accept=".csv" style="display: none" onchange="handleImportCSV(event)" />
-
-        <button class="btn-top btn-import" onclick="document.getElementById('import-file').click()">📥 Import CSV</button>
-        <button class="btn-top btn-export" onclick="exportToCSV()">📤 Export CSV</button>
+      <div class="right-controls" id="admin-actions">
+        <input type="file" id="import-file" accept=".csv" style="display: none" />
+        <button class="btn-top btn-import" id="btn-import">📥 Import CSV</button>
+        <button class="btn-top btn-export" id="btn-export">📤 Export CSV</button>
         <button class="btn-top btn-add" id="btn-add-row">➕ Tambah Baris</button>
       </div>
     </div>
@@ -188,9 +36,9 @@
     <div class="excel-table-container">
       <table class="excel-table">
         <thead>
-          <tr>
-            <th style="width: 35px; text-align: center">
-              <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this.checked)" />
+          <tr id="table-header">
+            <th id="th-select" style="width: 35px; text-align: center">
+              <input type="checkbox" id="select-all-checkbox" />
             </th>
             <th style="width: 40px; text-align: center">No</th>
             <th style="width: 150px">Barcode</th>
@@ -199,7 +47,7 @@
             <th style="width: 130px; text-align: right">Harga Beli (Rp)</th>
             <th style="width: 130px; text-align: right">Harga Jual (Rp)</th>
             <th style="width: 70px; text-align: center">Stok</th>
-            <th style="width: 90px; text-align: center">Aksi</th>
+            <th id="th-aksi" style="width: 90px; text-align: center">Aksi</th>
           </tr>
         </thead>
         <tbody id="excel-tbody">
@@ -208,343 +56,7 @@
       </table>
     </div>
 
-    <script>
-      const API_BASE_URL = "http://localhost:8000/api";
-      const CATEGORIES = ["Umum", "Makanan", "Minuman", "Sembako", "Perlengkapan Mandi", "Lainnya"];
-      let productsData = [];
-      let backupProductsData = [];
-      let filteredProducts = [];
-
-      function formatRupiah(val) {
-        let num = parseFloat(val) || 0;
-        if (num > 0 && num < 100) {
-          num = num * 1000;
-        }
-        return Math.round(num).toLocaleString("id-ID");
-      }
-
-      async function fetchProducts() {
-        try {
-          const res = await fetch(`${API_BASE_URL}/products`);
-          if (res.ok) {
-            const rawData = await res.json();
-            productsData = rawData.map((p) => ({ ...p, isEditing: false, isSelected: false }));
-            backupProductsData = JSON.parse(JSON.stringify(productsData));
-            filterProducts();
-          }
-        } catch (e) {
-          console.error("Gagal koneksi backend:", e);
-          filterProducts();
-        }
-      }
-
-      function filterProducts() {
-        const query = document.getElementById("search-input").value.toLowerCase().trim();
-        if (!query) {
-          filteredProducts = [...productsData];
-        } else {
-          filteredProducts = productsData.filter((p) => (p.name || "").toLowerCase().includes(query) || (p.barcode || "").toLowerCase().includes(query));
-        }
-        renderExcelTable();
-        updateBulkDeleteButton();
-      }
-
-      function renderExcelTable() {
-        const tbody = document.getElementById("excel-tbody");
-        tbody.innerHTML = "";
-
-        if (filteredProducts.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #6c7086; padding: 20px;">Data produk tidak ditemukan.</td></tr>`;
-          return;
-        }
-
-        filteredProducts.forEach((p, index) => {
-          const originalIndex = productsData.indexOf(p);
-          const tr = document.createElement("tr");
-
-          tr.ondblclick = (e) => {
-            if (!p.isEditing && e.target.tagName !== "BUTTON" && e.target.tagName !== "SELECT" && e.target.tagName !== "INPUT") {
-              enableEdit(originalIndex);
-            }
-          };
-
-          const checkboxTd = `
-            <td style="text-align: center;">
-              <input type="checkbox" ${p.isSelected ? "checked" : ""} onchange="toggleRowSelect(${originalIndex}, this.checked)" />
-            </td>
-          `;
-
-          if (p.isEditing) {
-            const catOptions = CATEGORIES.map((c) => `<option value="${c}" ${(p.category || "Umum") === c ? "selected" : ""}>${c}</option>`).join("");
-
-            tr.innerHTML = `
-              ${checkboxTd}
-              <td style="text-align: center; color: #89b4fa;">${index + 1}</td>
-              <td><input class="excel-input" placeholder="Wajib isi..." value="${p.barcode || ""}" oninput="updateProductField(${originalIndex}, 'barcode', this.value)"/></td>
-              <td><input class="excel-input" placeholder="Wajib isi..." value="${p.name || ""}" oninput="updateProductField(${originalIndex}, 'name', this.value)"/></td>
-              <td>
-                <select class="excel-select" onchange="updateProductField(${originalIndex}, 'category', this.value)">
-                  ${catOptions}
-                </select>
-              </td>
-              <td><input class="excel-input" type="number" style="text-align: right;" value="${p.purchase_price || p.cost || 0}" oninput="updateProductField(${originalIndex}, 'purchase_price', this.value)"/></td>
-              <td><input class="excel-input" type="number" style="text-align: right;" value="${p.price || p.selling_price || 0}" oninput="updateProductField(${originalIndex}, 'price', this.value)"/></td>
-              <td><input class="excel-input" type="number" style="text-align: center;" value="${p.stock || 0}" oninput="updateProductField(${originalIndex}, 'stock', this.value)"/></td>
-              <td style="text-align: center;">
-                <button class="btn-action" title="Simpan" onclick="saveRow(${originalIndex})">💾</button>
-                <button class="btn-action" title="Batal Edit" onclick="cancelEdit(${originalIndex})">❌</button>
-                <button class="btn-action" title="Hapus" onclick="deleteRow(${originalIndex})">🗑️</button>
-              </td>
-            `;
-          } else {
-            tr.innerHTML = `
-              ${checkboxTd}
-              <td style="text-align: center; color: #89b4fa;">${index + 1}</td>
-              <td><span class="cell-text">${p.barcode || "-"}</span></td>
-              <td><span class="cell-text">${p.name || "-"}</span></td>
-              <td><span class="cell-text">${p.category || "Umum"}</span></td>
-              <td style="text-align: right;"><span class="cell-text">${formatRupiah(p.purchase_price || p.cost)}</span></td>
-              <td style="text-align: right;"><span class="cell-text">${formatRupiah(p.price || p.selling_price)}</span></td>
-              <td style="text-align: center;"><span class="cell-text">${p.stock || 0}</span></td>
-              <td style="text-align: center;">
-                <button class="btn-action" title="Edit Baris" onclick="enableEdit(${originalIndex})">✏️</button>
-                <button class="btn-action" title="Hapus" onclick="deleteRow(${originalIndex})">🗑️</button>
-              </td>
-            `;
-          }
-          tbody.appendChild(tr);
-        });
-      }
-
-      function toggleRowSelect(index, isChecked) {
-        productsData[index].isSelected = isChecked;
-        updateBulkDeleteButton();
-      }
-
-      function toggleSelectAll(isChecked) {
-        filteredProducts.forEach((p) => {
-          const originalIndex = productsData.indexOf(p);
-          if (originalIndex !== -1) {
-            productsData[originalIndex].isSelected = isChecked;
-          }
-        });
-        renderExcelTable();
-        updateBulkDeleteButton();
-      }
-
-      function updateBulkDeleteButton() {
-        const selectedItems = productsData.filter((p) => p.isSelected);
-        const countSpan = document.getElementById("selected-count");
-        const bulkBtn = document.getElementById("btn-bulk-delete");
-
-        countSpan.textContent = selectedItems.length;
-        if (selectedItems.length > 0) {
-          bulkBtn.style.display = "flex";
-        } else {
-          bulkBtn.style.display = "none";
-          document.getElementById("select-all-checkbox").checked = false;
-        }
-      }
-
-      async function deleteSelectedRows() {
-        const selectedItems = productsData.filter((p) => p.isSelected);
-        if (selectedItems.length === 0) return;
-
-        if (!confirm(`Yakin ingin menghapus ${selectedItems.length} produk yang dipilih secara serentak?`)) {
-          return;
-        }
-
-        for (const item of selectedItems) {
-          if (item.id) {
-            try {
-              await fetch(`${API_BASE_URL}/products/${item.id}`, { method: "DELETE" });
-            } catch (e) {
-              console.error(`Gagal menghapus produk ID ${item.id}:`, e);
-            }
-          }
-        }
-
-        productsData = productsData.filter((p) => !p.isSelected);
-        backupProductsData = JSON.parse(JSON.stringify(productsData));
-        document.getElementById("select-all-checkbox").checked = false;
-        filterProducts();
-      }
-
-      function enableEdit(index) {
-        backupProductsData[index] = JSON.parse(JSON.stringify(productsData[index]));
-        productsData[index].isEditing = true;
-        filterProducts();
-      }
-
-      function cancelEdit(index) {
-        const item = productsData[index];
-        if (!item.id && !backupProductsData[index]) {
-          productsData.splice(index, 1);
-          backupProductsData.splice(index, 1);
-        } else {
-          productsData[index] = JSON.parse(JSON.stringify(backupProductsData[index]));
-          productsData[index].isEditing = false;
-        }
-        filterProducts();
-      }
-
-      function updateProductField(index, field, value) {
-        productsData[index][field] = value;
-      }
-
-      async function saveRow(index) {
-        const item = productsData[index];
-
-        const barcode = (item.barcode || "").trim();
-        const name = (item.name || "").trim();
-
-        let price = parseFloat(item.price || item.selling_price) || 0;
-        let purchasePrice = parseFloat(item.purchase_price || item.cost) || 0;
-
-        if (price > 0 && price < 100) price = price * 1000;
-        if (purchasePrice > 0 && purchasePrice < 100) purchasePrice = purchasePrice * 1000;
-
-        if (!barcode) {
-          alert("Gagal Simpan: Barcode tidak boleh kosong!");
-          return;
-        }
-        if (!name) {
-          alert("Gagal Simpan: Nama Produk tidak boleh kosong!");
-          return;
-        }
-        if (price <= 0) {
-          alert("Gagal Simpan: Harga Jual harus lebih besar dari 0!");
-          return;
-        }
-
-        const isUpdate = Boolean(item.id);
-        const method = isUpdate ? "PUT" : "POST";
-        const url = isUpdate ? `${API_BASE_URL}/products/${item.id}` : `${API_BASE_URL}/products`;
-
-        const payload = {
-          barcode: barcode,
-          name: name,
-          price: price,
-          purchase_price: purchasePrice,
-          stock: parseInt(item.stock) || 0,
-          category: item.category || "Umum",
-        };
-
-        try {
-          const res = await fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-
-          if (res.ok) {
-            const savedProduct = await res.json();
-
-            productsData[index] = {
-              ...savedProduct,
-              isEditing: false,
-              isSelected: item.isSelected || false,
-            };
-            backupProductsData[index] = JSON.parse(JSON.stringify(productsData[index]));
-
-            filterProducts();
-          } else {
-            const errData = await res.json();
-            alert(`Gagal menyimpan: ${errData.detail || "Terjadi kesalahan di server"}`);
-          }
-        } catch (e) {
-          console.error("Error saveRow:", e);
-          alert("Terjadi kesalahan koneksi ke backend.");
-        }
-      }
-
-      async function deleteRow(index) {
-        const item = productsData[index];
-        if (item.id) {
-          if (!confirm(`Yakin ingin menghapus barang "${item.name || "Baris ini"}"?`)) return;
-          try {
-            const res = await fetch(`${API_BASE_URL}/products/${item.id}`, { method: "DELETE" });
-            if (!res.ok) {
-              alert("Gagal menghapus produk di backend.");
-              return;
-            }
-          } catch (e) {
-            alert("Error koneksi saat menghapus.");
-            return;
-          }
-        }
-        productsData.splice(index, 1);
-        backupProductsData.splice(index, 1);
-        filterProducts();
-      }
-
-      function exportToCSV() {
-        if (productsData.length === 0) {
-          alert("Tidak ada data produk untuk diexport!");
-          return;
-        }
-        let csvContent = "data:text/csv;charset=utf-8,Barcode,Nama Produk,Kategori,Harga Beli,Harga Jual,Stok\n";
-
-        productsData.forEach((p) => {
-          const row = [`"${p.barcode || ""}"`, `"${p.name || ""}"`, `"${p.category || "Umum"}"`, p.purchase_price || p.cost || 0, p.price || p.selling_price || 0, p.stock || 0].join(",");
-          csvContent += row + "\n";
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `database_produk_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      // IMPORT VIA BACKEND API UNTUK MENCEGAH EROR CONSTRAINTS DUPLIKASI
-      async function handleImportCSV(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-          const res = await fetch(`${API_BASE_URL}/products/import-csv`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (res.ok) {
-            const result = await res.json();
-            alert(result.message || "Import CSV Berhasil!");
-            await fetchProducts(); // Sinkronisasi ulang data produk lengkap dengan ID resmi dari database
-          } else {
-            const err = await res.json();
-            alert(`Gagal Import CSV: ${err.detail || "Format CSV tidak sesuai."}`);
-          }
-        } catch (e) {
-          console.error("Gagal Import CSV:", e);
-          alert("Terjadi kesalahan koneksi saat mengunggah file CSV.");
-        } finally {
-          event.target.value = "";
-        }
-      }
-
-      document.getElementById("btn-add-row").onclick = () => {
-        document.getElementById("search-input").value = "";
-        productsData.unshift({
-          barcode: "",
-          name: "",
-          category: "Umum",
-          purchase_price: 0,
-          price: 0,
-          stock: 0,
-          isEditing: true,
-          isSelected: false,
-        });
-        filterProducts();
-      };
-
-      document.addEventListener("DOMContentLoaded", fetchProducts);
-    </script>
+    <!-- Script logika eksternal -->
+    <script src="js/products.js"></script>
   </body>
 </html>

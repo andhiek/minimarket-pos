@@ -1,6 +1,20 @@
 // Variable global untuk menyimpan data transaksi terakhir yang di-fetch
 let currentReportTransactions = [];
 
+// -------------------------------------------------------------
+// GUARD ACCESS: Mencegah Kasir membuka laporan lewat URL langsung
+// -------------------------------------------------------------
+(function checkAdminAccess() {
+  const currentUser = JSON.parse(localStorage.getItem("pos_current_user") || "{}");
+  const role = (currentUser.role || "").toLowerCase();
+  const isKasir = role === "kasir" || role === "cashier";
+
+  if (!currentUser || !currentUser.role || isKasir) {
+    alert("Akses Ditolak! Halaman Laporan Keuangan hanya dapat diakses oleh Admin.");
+    window.location.href = "index.html";
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   const reportTypeSelect = document.getElementById("report-type");
   const dailyFilter = document.getElementById("daily-filter");
@@ -35,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLoadReport.addEventListener("click", loadReportData);
   }
 
-  // Tambahkan listener untuk tombol Export CSV
+  // Listener tombol Export CSV
   const btnExportCSV = document.getElementById("btn-export-csv");
   if (btnExportCSV) {
     btnExportCSV.addEventListener("click", exportToCSV);
@@ -73,12 +87,13 @@ async function loadReportData() {
     // 1. Render Tabel Transaksi
     renderReportTable(currentReportTransactions);
 
-    // 2. Render KPI Cards
+    // 2. Render KPI Cards & Breakdown Pembayaran
     renderKPI(
       data.summary || {
         total_tx: currentReportTransactions.length,
         total_sales: 0,
         total_profit: 0,
+        payment_breakdown: {},
       },
     );
   } catch (error) {
@@ -96,7 +111,7 @@ function renderKPI(summary) {
   if (statSales) statSales.innerText = `Rp ${(summary.total_sales || 0).toLocaleString("id-ID")}`;
   if (statProfit) statProfit.innerText = `Rp ${(summary.total_profit || 0).toLocaleString("id-ID")}`;
 
-  // Render breakdown pembayaran
+  // Render breakdown metode pembayaran
   renderPaymentBreakdown(summary.payment_breakdown || {});
 }
 
@@ -104,16 +119,36 @@ function renderPaymentBreakdown(breakdown) {
   const container = document.getElementById("payment-breakdown-container");
   if (!container) return;
 
-  // Jika belum ada data metode lain, buatkan fallback standar CASH & QRIS
-  const methods = Object.keys(breakdown).length > 0 ? breakdown : { CASH: 0 };
+  const defaultMethods = ["CASH", "QRIS", "DEBIT", "TRANSFER"];
+  const colors = {
+    CASH: "#10b981", // Hijau
+    QRIS: "#3b82f6", // Biru
+    DEBIT: "#f59e0b", // Oranye/Kuning
+    TRANSFER: "#8b5cf6", // Ungu
+  };
 
-  container.innerHTML = Object.entries(methods)
+  const allMethods = {};
+  defaultMethods.forEach((method) => {
+    allMethods[method] = breakdown[method] || 0;
+  });
+
+  Object.keys(breakdown).forEach((method) => {
+    if (!allMethods.hasOwnProperty(method)) {
+      allMethods[method] = breakdown[method];
+    }
+  });
+
+  // Inline style flex-direction row
+  container.setAttribute("style", "display: flex !important; flex-direction: row !important; gap: 12px; margin-bottom: 20px; width: 100%;");
+
+  container.innerHTML = Object.entries(allMethods)
     .map(([method, total]) => {
+      const borderColor = colors[method] || "#6b7280";
       return `
-        <div style="background: #252a3b; border-left: 4px solid #3b82f6; padding: 10px 15px; border-radius: 6px; flex: 1; min-width: 150px;">
-          <small style="color: #aaa; text-transform: uppercase; font-size: 11px; font-weight: bold;">METODE: ${method}</small>
-          <div style="font-size: 16px; font-weight: bold; color: #fff; margin-top: 2px;">
-            Rp ${total.toLocaleString("id-ID")}
+        <div style="background: var(--bg-panel, #1f2937); border: 1px solid var(--border-color, #374151); border-left: 4px solid ${borderColor}; padding: 10px 14px; border-radius: 6px; flex: 1; min-width: 0;">
+          <small style="color: var(--text-muted, #9ca3af); text-transform: uppercase; font-size: 11px; font-weight: bold; display: block;">METODE: ${method}</small>
+          <div style="font-size: 15px; font-weight: bold; color: var(--text-main, #fff); margin-top: 3px; white-space: nowrap;">
+            Rp ${(total || 0).toLocaleString("id-ID")}
           </div>
         </div>
       `;
@@ -126,7 +161,7 @@ function renderReportTable(list) {
   if (!tbody) return;
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 30px; color: #888;">Tidak ada data transaksi.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 30px; color: #888;">Tidak ada data transaksi.</td></tr>`;
     return;
   }
 
@@ -142,10 +177,10 @@ function renderReportTable(list) {
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td><strong>${invoice}</strong></td>
-                <td>${dateDisplay}</td>
-                <td>${timeDisplay}</td>
+                <td class="text-center">${dateDisplay}</td>
+                <td class="text-center">${timeDisplay}</td>
                 <td>${cashier}</td>
-                <td><span class="badge-payment">${item.payment_method || "CASH"}</span></td>
+                <td class="text-center"><span class="badge-payment">${item.payment_method || "CASH"}</span></td>
                 <td class="text-right"><strong>Rp ${total.toLocaleString("id-ID")}</strong></td>
                 <td class="text-center">
                     <button class="btn-detail" onclick="openDetailModal(${item.id})">Detail</button>
@@ -156,7 +191,7 @@ function renderReportTable(list) {
     .join("");
 }
 
-// Fungsi Buka Modal & Ambil Detail Transaksi
+// Buka Modal & Ambil Detail Transaksi
 async function openDetailModal(txId) {
   try {
     const response = await fetch(`/api/reports/transaction/${txId}`);
@@ -195,7 +230,7 @@ function closeDetailModal() {
   document.getElementById("modal-detail").style.display = "none";
 }
 
-// Fungsi Export Data Laporan ke File CSV
+// Export Data Laporan ke File CSV
 function exportToCSV() {
   if (!currentReportTransactions || currentReportTransactions.length === 0) {
     alert("Tidak ada data transaksi untuk diexport.");

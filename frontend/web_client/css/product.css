@@ -1,0 +1,173 @@
+body {
+  padding: 15px;
+  background-color: var(--bg-body, #1e1e2e);
+  color: var(--text-main, #cdd6f4);
+  font-family: sans-serif;
+}
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Navigasi Menu Tab Header */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav-tab-item {
+  padding: 6px 14px;
+  border-radius: 4px;
+  color: var(--text-muted, #9ca3af);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-panel, #1f2937);
+  border: 1px solid var(--border-color, #374151);
+  transition: all 0.2s ease;
+}
+.nav-tab-item:hover {
+  background: var(--border-color, #374151);
+  color: #ffffff;
+}
+.nav-tab-item.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.top-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+.left-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.right-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.search-input {
+  width: 280px;
+  background: #181825;
+  border: 1px solid #45475a;
+  color: #cdd6f4;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+.search-input:focus {
+  border-color: #89b4fa;
+}
+.btn-top {
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-add {
+  background: #a6e3a1;
+  color: #11111b;
+}
+.btn-add:hover {
+  background: #94e2d5;
+}
+.btn-export {
+  background: #89b4fa;
+  color: #11111b;
+}
+.btn-export:hover {
+  background: #b4befe;
+}
+.btn-import {
+  background: #fab387;
+  color: #11111b;
+}
+.btn-import:hover {
+  background: #f9e2af;
+}
+.btn-bulk-delete {
+  background: #f38ba8;
+  color: #11111b;
+  display: none;
+}
+.btn-bulk-delete:hover {
+  background: #eba0ac;
+}
+.excel-table-container {
+  overflow-x: auto;
+  background: var(--bg-card, #181825);
+  border: 1px solid var(--border-color, #313244);
+  border-radius: 6px;
+  max-height: calc(100vh - 160px);
+}
+table.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.excel-table th,
+table.excel-table td {
+  border: 1px solid #313244;
+  padding: 6px 8px;
+  text-align: left;
+}
+table.excel-table th {
+  background: #2a2b3d;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-weight: 600;
+}
+table.excel-table tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.excel-input,
+.excel-select {
+  width: 100%;
+  background: #313244;
+  border: 1px solid #89b4fa;
+  color: #cdd6f4;
+  font-size: 13px;
+  outline: none;
+  padding: 3px 5px;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.btn-action:hover {
+  background: #313244;
+}
+.cell-text {
+  cursor: pointer;
+  display: block;
+  min-height: 20px;
+}
+input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #89b4fa;
+  width: 15px;
+  height: 15px;
+}

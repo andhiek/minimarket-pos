@@ -54,6 +54,7 @@
       </div>
 
       <!-- Metric Cards -->
+      <!-- Metric Cards Utama (3 Kolom) -->
       <div class="kpi-container">
         <div class="kpi-card tx">
           <div class="kpi-title">Total Transaksi</div>
@@ -67,10 +68,11 @@
           <div class="kpi-title">Estimasi Laba Bersih</div>
           <div class="kpi-value" id="stat-total-profit">Rp 0</div>
         </div>
-        <!-- Rekap Metode Pembayaran -->
-        <div id="payment-breakdown-container" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
-          <!-- Badge rincian pembayaran (CASH, QRIS, TRANSFER) akan di-render dinamis oleh JS di sini -->
-        </div>
+      </div>
+
+      <!-- Rekap Metode Pembayaran (Sejajar Menyamping 4 Kolom) -->
+      <div id="payment-breakdown-container">
+        <!-- Card CASH, QRIS, DEBIT, TRANSFER di-render dinamis oleh JS di sini -->
       </div>
 
       <!-- Excel / Grid Table Container -->
@@ -78,17 +80,19 @@
         <table class="excel-table">
           <thead>
             <tr>
-              <th style="width: 50px" class="text-center">No</th>
-              <th style="width: 200px">No Invoice</th>
-              <th style="width: 120px">Jam</th>
-              <th style="width: 160px">Kasir</th>
-              <th style="width: 140px">Metode Pembayaran</th>
-              <th style="width: 180px" class="text-right">Total Transaksi</th>
+              <th style="width: 50px" class="text-center">NO</th>
+              <th style="width: 180px">NO INVOICE</th>
+              <th style="width: 110px" class="text-center">TANGGAL</th>
+              <th style="width: 80px" class="text-center">JAM</th>
+              <th style="width: 150px">KASIR</th>
+              <th style="width: 130px" class="text-center">METODE PEMBAYARAN</th>
+              <th style="width: 150px" class="text-right">TOTAL TRANSAKSI</th>
+              <th style="width: 90px" class="text-center">AKSI</th>
             </tr>
           </thead>
           <tbody id="report-table-body">
             <tr>
-              <td colspan="6" class="text-center" style="padding: 30px; color: var(--text-muted)">Tidak ada data transaksi.</td>
+              <td colspan="8" class="text-center" style="padding: 30px; color: var(--text-muted)">Tidak ada data transaksi.</td>
             </tr>
           </tbody>
         </table>
