@@ -62,6 +62,7 @@ function setupEventListeners() {
         category: "Umum",
         purchase_price: 0,
         price: 0,
+        discount_percent: 0,
         stock: 0,
         isEditing: true,
         isSelected: false,
@@ -109,7 +110,8 @@ function renderExcelTable() {
   const tbody = document.getElementById("excel-tbody");
   tbody.innerHTML = "";
 
-  const colSpanCount = isKasir ? 7 : 9;
+  // 10 kolom total (Admin) / 8 kolom (Kasir - tanpa Checkbox & Aksi)
+  const colSpanCount = isKasir ? 8 : 10;
 
   if (filteredProducts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${colSpanCount}" style="text-align: center; color: #6c7086; padding: 20px;">Data produk tidak ditemukan.</td></tr>`;
@@ -152,6 +154,7 @@ function renderExcelTable() {
         </td>
         <td><input class="excel-input" type="number" style="text-align: right;" value="${p.purchase_price || p.cost || 0}" oninput="updateProductField(${originalIndex}, 'purchase_price', this.value)"/></td>
         <td><input class="excel-input" type="number" style="text-align: right;" value="${p.price || p.selling_price || 0}" oninput="updateProductField(${originalIndex}, 'price', this.value)"/></td>
+        <td><input class="excel-input" type="number" style="text-align: center;" min="0" max="100" value="${p.discount_percent ?? 0}" oninput="updateProductField(${originalIndex}, 'discount_percent', this.value)"/></td>
         <td><input class="excel-input" type="number" style="text-align: center;" value="${p.stock || 0}" oninput="updateProductField(${originalIndex}, 'stock', this.value)"/></td>
         <td style="text-align: center;">
           <button class="btn-action" title="Simpan" onclick="saveRow(${originalIndex})">💾</button>
@@ -177,6 +180,7 @@ function renderExcelTable() {
         <td><span class="cell-text">${p.category || "Umum"}</span></td>
         <td style="text-align: right;"><span class="cell-text">${formatRupiah(p.purchase_price || p.cost)}</span></td>
         <td style="text-align: right;"><span class="cell-text">${formatRupiah(p.price || p.selling_price)}</span></td>
+        <td style="text-align: center;"><span class="cell-text">${p.discount_percent ?? 0}%</span></td>
         <td style="text-align: center;"><span class="cell-text">${p.stock || 0}</span></td>
         ${actionTd}
       `;
@@ -258,7 +262,11 @@ function cancelEdit(index) {
 }
 
 function updateProductField(index, field, value) {
-  productsData[index][field] = value;
+  if (field === "discount_percent" || field === "purchase_price" || field === "price" || field === "stock") {
+    productsData[index][field] = value === "" ? 0 : parseFloat(value) || 0;
+  } else {
+    productsData[index][field] = value;
+  }
 }
 
 async function saveRow(index) {
@@ -270,6 +278,7 @@ async function saveRow(index) {
 
   let price = parseFloat(item.price || item.selling_price) || 0;
   let purchasePrice = parseFloat(item.purchase_price || item.cost) || 0;
+  let discountPercent = parseFloat(item.discount_percent) || 0;
 
   if (price > 0 && price < 100) price = price * 1000;
   if (purchasePrice > 0 && purchasePrice < 100) purchasePrice = purchasePrice * 1000;
@@ -296,6 +305,7 @@ async function saveRow(index) {
     name: name,
     price: price,
     purchase_price: purchasePrice,
+    discount_percent: discountPercent,
     stock: parseInt(item.stock) || 0,
     category: item.category || "Umum",
   };
@@ -354,10 +364,10 @@ function exportToCSV() {
     alert("Tidak ada data produk untuk diexport!");
     return;
   }
-  let csvContent = "data:text/csv;charset=utf-8,Barcode,Nama Produk,Kategori,Harga Beli,Harga Jual,Stok\n";
+  let csvContent = "data:text/csv;charset=utf-8,Barcode,Nama Produk,Kategori,Harga Beli,Harga Jual,Diskon (%),Stok\n";
 
   productsData.forEach((p) => {
-    const row = [`"${p.barcode || ""}"`, `"${p.name || ""}"`, `"${p.category || "Umum"}"`, p.purchase_price || p.cost || 0, p.price || p.selling_price || 0, p.stock || 0].join(",");
+    const row = [`"${p.barcode || ""}"`, `"${p.name || ""}"`, `"${p.category || "Umum"}"`, p.purchase_price || p.cost || 0, p.price || p.selling_price || 0, p.discount_percent || 0, p.stock || 0].join(",");
     csvContent += row + "\n";
   });
 

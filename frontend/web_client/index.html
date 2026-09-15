@@ -6,6 +6,8 @@
     <title>Minimarket Billing & POS System</title>
     <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css" />
+    <!-- FontAwesome untuk Ikon Toast -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
   <body>
     <!-- Top Header -->
@@ -39,15 +41,17 @@
         <div class="status-member">Status Member: <span id="member-name-display">Non-Member</span></div>
 
         <!-- Tabel -->
+        <!-- Tabel -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th style="width: 120px">Barcode</th>
                 <th>Nama Produk</th>
-                <th style="text-align: right; width: 100px">Harga (Rp)</th>
+                <th style="text-align: right; width: 130px">Harga (Rp)</th>
+                <!-- Diperlebar dari 100px ke 130px -->
                 <th style="text-align: center; width: 60px">Qty</th>
-                <th style="text-align: right; width: 100px">Subtotal (Rp)</th>
+                <th style="text-align: right; width: 110px">Subtotal (Rp)</th>
               </tr>
             </thead>
             <tbody id="cart-table-body">
@@ -68,11 +72,6 @@
         <div class="grand-total-box">
           <div class="grand-total-title">TOTAL BELANJA / GRAND TOTAL</div>
           <div class="grand-total-amount" id="grand-total-display">Rp 0</div>
-        </div>
-
-        <div class="right-form-group">
-          <label for="discount-input">Diskon Nominal (Rp):</label>
-          <input type="number" id="discount-input" value="0" min="0" />
         </div>
 
         <div class="right-form-group">
@@ -100,95 +99,14 @@
         <button class="btn-pay-main" id="btn-pay-main">PROSES BAYAR [F5]</button>
 
         <!-- Navigasi Menu Kanan -->
-        <a href="products.html" target="_blank" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📊 Kelola Produk (Excel View)</a>
+        <a href="products.html" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📊 Kelola Produk (Excel View)</a>
         <button class="menu-btn" id="btn-modal-members">Manajemen Member _Poin</button>
-        <a href="reports.html" target="_blank" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📈 Laporan Harian / Laba</a>
+        <a href="reports.html" class="menu-btn" style="text-align: center; text-decoration: none; display: block">📈 Laporan Harian / Laba</a>
         <button class="menu-btn" id="btn-modal-receipt-settings">⚙ Setting Struk</button>
       </div>
     </div>
 
     <!-- POP-UP MODAL CONTAINER -->
-
-    <!-- 1. Modal Kelola Produk -->
-    <div class="modal-overlay" id="modal-products">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title">📦 Kelola Produk (Tambah / Edit / Import CSV)</div>
-          <button class="modal-close" onclick="closeModal('modal-products')">✖</button>
-        </div>
-        <div class="modal-body">
-          <!-- Section Form Manual -->
-          <div class="modal-grid-form">
-            <div class="modal-field">
-              <label>Barcode:</label>
-              <input type="text" id="p-barcode" placeholder="899..." />
-            </div>
-            <div class="modal-field">
-              <label>Nama Produk:</label>
-              <input type="text" id="p-name" placeholder="Nama Barang" />
-            </div>
-            <div class="modal-field">
-              <label>Harga Jual (Rp):</label>
-              <input type="number" id="p-price" placeholder="10000" />
-            </div>
-            <div class="modal-field">
-              <label>Harga Modal/Beli (Rp):</label>
-              <input type="number" id="p-cost" placeholder="8000" />
-            </div>
-            <div class="modal-field">
-              <label>Stok Awal:</label>
-              <input type="number" id="p-stock" placeholder="50" />
-            </div>
-            <div class="modal-field">
-              <label>Kategori:</label>
-              <select id="p-category">
-                <option value="Umum">Umum</option>
-                <option value="Makanan">Makanan</option>
-                <option value="Minuman">Minuman</option>
-                <option value="Sembako">Sembako</option>
-                <option value="Perlengkapan Mandi">Perlengkapan Mandi</option>
-                <option value="Lainnya">Lainnya</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn-action" style="margin-top: 5px" id="btn-save-product">Simpan Produk Baru</button>
-
-          <hr style="border-color: var(--border-color); margin: 10px 0" />
-
-          <!-- Section Import/Export CSV -->
-          <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap">
-            <div style="display: flex; gap: 5px; align-items: center">
-              <input type="file" id="csv-file-input" accept=".csv" style="font-size: 12px; width: 180px" />
-              <button class="btn-secondary" id="btn-import-csv" style="padding: 4px 8px; font-size: 12px">📥 Import CSV</button>
-            </div>
-            <button class="btn-secondary" id="btn-export-csv" style="padding: 4px 8px; font-size: 12px">📤 Export CSV</button>
-          </div>
-
-          <hr style="border-color: var(--border-color); margin: 10px 0" />
-
-          <div style="font-weight: bold; font-size: 12px">Daftar Produk Terdaftar:</div>
-          <div class="table-container" style="max-height: 200px">
-            <table>
-              <thead>
-                <tr>
-                  <th>Barcode</th>
-                  <th>Nama</th>
-                  <th>Kategori</th>
-                  <th style="text-align: right">Harga</th>
-                  <th style="text-align: center">Stok</th>
-                </tr>
-              </thead>
-              <tbody id="product-list-tbody">
-                <!-- Data Produk -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" onclick="closeModal('modal-products')">Tutup</button>
-        </div>
-      </div>
-    </div>
 
     <!-- 2. Modal Manajemen Member -->
     <div class="modal-overlay" id="modal-members">
@@ -212,31 +130,6 @@
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" onclick="closeModal('modal-members')">Tutup</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Modal Laporan Harian -->
-    <div class="modal-overlay" id="modal-reports">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title">📊 Laporan Penjualan & Laba Harian</div>
-          <button class="modal-close" onclick="closeModal('modal-reports')">✖</button>
-        </div>
-        <div class="modal-body">
-          <div style="display: flex; gap: 10px; font-size: 14px">
-            <div style="flex: 1; background: var(--bg-card); padding: 12px; border-radius: 4px; text-align: center">
-              <div style="color: var(--text-muted); font-size: 11px">TOTAL OMSET HARIAN</div>
-              <div style="font-weight: bold; font-size: 18px; color: var(--accent-green)" id="report-omset">Rp 0</div>
-            </div>
-            <div style="flex: 1; background: var(--bg-card); padding: 12px; border-radius: 4px; text-align: center">
-              <div style="color: var(--text-muted); font-size: 11px">ESTIMASI LABA BERSIH</div>
-              <div style="font-weight: bold; font-size: 18px; color: var(--grand-total-text)" id="report-profit">Rp 0</div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-secondary" onclick="closeModal('modal-reports')">Tutup</button>
         </div>
       </div>
     </div>
@@ -367,6 +260,9 @@
       </div>
     </div>
 
+    <!-- POS Helpers & Shortcuts -->
+    <script src="js/pos-helpers.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

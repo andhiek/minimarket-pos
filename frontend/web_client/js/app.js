@@ -12,7 +12,7 @@ const API_BASE_URL = "http://localhost:8000/api";
 let cart = []; // Menampung daftar item belanjaan yang dimasukkan kasir
 let selectedCartIndex = -1; // Menandai baris tabel keranjang yang sedang dipilih/diklik
 let pendingTransactions = []; // Menampung transaksi yang ditahan (Hold/Pending)
-let lastCompletedTransaction = null; // Menimpan data transaksi terakhir untuk fitur cetak ulang struk
+let lastCompletedTransaction = null; // Menyimpan data transaksi terakhir untuk fitur cetak ulang struk
 
 // User Auth State
 let currentUser = JSON.parse(localStorage.getItem("pos_current_user")) || null;
@@ -28,7 +28,6 @@ const btnSearchMember = document.getElementById("btn-search-member");
 const memberNameDisplay = document.getElementById("member-name-display");
 const cartTableBody = document.getElementById("cart-table-body");
 const grandTotalDisplay = document.getElementById("grand-total-display");
-const discountInput = document.getElementById("discount-input");
 const paidAmountInput = document.getElementById("paid-amount");
 const changeDisplay = document.getElementById("change-display");
 const btnPayMain = document.getElementById("btn-pay-main");
@@ -50,6 +49,15 @@ function formatRupiah(num) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(num || 0);
 }
 
+// Helper Toast Notification (Fallback ke alert jika pos-helpers.js tidak dimuat)
+function notify(message, type = "info") {
+  if (typeof showToast === "function") {
+    showToast(message, type);
+  } else {
+    alert(message);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // 0. AUTHENTICATION & USER MANAGEMENT
 // -----------------------------------------------------------------------------
@@ -66,7 +74,6 @@ function checkAuthStatus() {
     return;
   }
   updateUserDisplay();
-  applyRolePermissions();
 }
 
 /**
@@ -117,10 +124,6 @@ if (themeToggleBtn) {
 // -----------------------------------------------------------------------------
 // 2. MODAL MANAGEMENT (Manajer Jendela Pop-up)
 // -----------------------------------------------------------------------------
-/**
- * Membuka jendela modal berdasarkan ID elemen
- * @param {string} modalId - ID elemen modal HTML
- */
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
@@ -131,10 +134,6 @@ function openModal(modalId) {
   }
 }
 
-/**
- * Menutup jendela modal berdasarkan ID elemen dan kembalikan fokus ke kolom input barcode
- * @param {string} modalId - ID elemen modal HTML
- */
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
@@ -152,9 +151,6 @@ if (document.getElementById("btn-modal-receipt-settings")) document.getElementBy
 // -----------------------------------------------------------------------------
 // 3. SCAN & CART OPERATIONS (Pencarian Produk & Operasi Keranjang)
 // -----------------------------------------------------------------------------
-/**
- * Fungsi utama untuk mencari produk berdasarkan barcode atau kata kunci nama produk
- */
 async function handleAddProduct() {
   const query = barcodeInput.value.trim();
   if (!query) return;
@@ -167,15 +163,14 @@ async function handleAddProduct() {
 
       if (products.length === 1) {
         const rawProduct = products[0];
-
-        // Ambil selling_price dari backend, kalau tidak ada baru cek price
         const itemPrice = Number(rawProduct.selling_price ?? rawProduct.price) || 0;
 
         const productData = {
           id: rawProduct.id,
           barcode: rawProduct.barcode,
           name: rawProduct.name,
-          price: itemPrice, // Sudah dipastikan mengambil harga jual yang benar
+          price: itemPrice,
+          discount_percent: Number(rawProduct.discount_percent) || 0,
           stock: rawProduct.stock,
           purchase_price: rawProduct.purchase_price || 0,
         };
@@ -186,18 +181,17 @@ async function handleAddProduct() {
       } else if (products.length > 1) {
         showProductSearchResults(products);
       } else {
-        alert("Produk tidak ditemukan!");
+        notify("Produk tidak ditemukan!", "error");
       }
     } else {
-      alert("Gagal mencari produk!");
+      notify("Gagal mencari produk!", "error");
     }
   } catch (err) {
     console.error("Error backend search:", err);
-    alert("Gagal terhubung ke server backend!");
+    notify("Gagal terhubung ke server backend!", "error");
   }
 }
 
-// Event Listener Enter pada kolom Barcode dan Tombol Tambah
 if (barcodeInput) {
   barcodeInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") handleAddProduct();
@@ -205,16 +199,12 @@ if (barcodeInput) {
 }
 if (btnAdd) btnAdd.addEventListener("click", handleAddProduct);
 
-/**
- * Menampilkan daftar pilihan produk ketika hasil pencarian lebih dari 1 item
- * @param {Array} products - Daftar array objek produk dari backend
- */
 function showProductSearchResults(products) {
   let optionsText = "Beberapa produk ditemukan, pilih nomor produk:\n\n";
   products.forEach((p, index) => {
-    // Ambil harga dari selling_price terlebih dahulu
     const price = Number(p.selling_price ?? p.price) || 0;
-    optionsText += `${index + 1}. [${p.barcode}] ${p.name} - ${formatRupiah(price)} (Stok: ${p.stock})\n`;
+    const discInfo = p.discount_percent ? ` [Diskon ${p.discount_percent}%]` : "";
+    optionsText += `${index + 1}. [${p.barcode}] ${p.name}${discInfo} - ${formatRupiah(price)} (Stok: ${p.stock})\n`;
   });
 
   const choice = prompt(optionsText + "\nMasukkan nomor pilihan (1 - " + products.length + "):");
@@ -222,16 +212,14 @@ function showProductSearchResults(products) {
 
   if (!isNaN(selectedIndex) && selectedIndex >= 0 && selectedIndex < products.length) {
     const selected = products[selectedIndex];
-
-    // Mengambil nilai harga jual yang benar
     const selectedPrice = Number(selected.selling_price ?? selected.price) || 0;
 
-    // Normalisasi properti harga sebelum masuk ke keranjang
     addToCart({
       id: selected.id,
       barcode: selected.barcode,
       name: selected.name,
       price: selectedPrice,
+      discount_percent: Number(selected.discount_percent) || 0,
       stock: selected.stock,
       purchase_price: selected.purchase_price || 0,
     });
@@ -239,7 +227,7 @@ function showProductSearchResults(products) {
     barcodeInput.value = "";
     barcodeInput.focus();
   } else if (choice !== null) {
-    alert("Pilihan tidak valid!");
+    notify("Pilihan tidak valid!", "warning");
   }
 }
 
@@ -254,42 +242,35 @@ if (btnSearchMember) {
       if (res.ok) {
         const customer = await res.json();
         memberNameDisplay.innerText = `${customer.name} (${customer.points || 0} Pts)`;
+        notify(`Member ditemukan: ${customer.name}`, "success");
       } else {
-        alert("Member tidak ditemukan!");
+        notify("Member tidak ditemukan!", "warning");
         memberNameDisplay.innerText = "Non-Member";
       }
     } catch (err) {
-      alert("Gagal mencari member!");
+      notify("Gagal mencari member!", "error");
     }
   });
 }
 
 /**
- * Menambahkan objek produk ke dalam array `cart`.
- * Jika item sudah ada di keranjang, jumlah kuantitas akan ditambah 1.
- * @param {Object} product - Data objek produk dari database
- */
-/**
- * Menambahkan objek produk ke dalam array `cart`.
- * Jika item sudah ada di keranjang, jumlah kuantitas akan ditambah 1.
- * @param {Object} product - Data objek produk dari database
+ * Menambahkan objek produk ke dalam keranjang
  */
 function addToCart(product) {
   if (!product) return;
 
   if (product.stock <= 0) {
-    alert(`Stok '${product.name}' habis!`);
+    notify(`Stok '${product.name}' habis!`, "error");
     return;
   }
 
-  // Memastikan mengambil atribut harga jual yang benar dan mengonversinya ke Number
   const rawPrice = product.price !== undefined && product.price !== null ? product.price : product.selling_price;
   const itemPrice = Number(rawPrice) || 0;
 
   const existing = cart.find((item) => item.product_id === product.id);
   if (existing) {
     if (existing.quantity + 1 > product.stock) {
-      alert(`Stok tidak mencukupi (Sisa stok: ${product.stock})`);
+      notify(`Stok tidak mencukupi (Sisa stok: ${product.stock})`, "warning");
       return;
     }
     existing.quantity += 1;
@@ -299,6 +280,7 @@ function addToCart(product) {
       barcode: product.barcode,
       name: product.name,
       price: itemPrice,
+      discount_percent: product.discount_percent || 0,
       quantity: 1,
       max_stock: product.stock,
     });
@@ -309,7 +291,15 @@ function addToCart(product) {
 }
 
 /**
- * Merender ulang elemen HTML tabel keranjang belanja berdasarkan data dalam array `cart`
+ * Menghitung Total Belanja dari subtotal produk
+ */
+function calculateCartTotals(subtotal) {
+  const grandTotal = Math.max(0, subtotal);
+  return { grandTotal };
+}
+
+/**
+ * Merender ulang tabel keranjang (dengan perhitungan diskon per produk)
  */
 function renderCart() {
   if (!cartTableBody) return;
@@ -317,13 +307,23 @@ function renderCart() {
   let subtotal = 0;
 
   cart.forEach((item, idx) => {
-    const itemSubtotal = item.price * item.quantity;
+    // Hitung harga setelah diskon produk
+    const discPercent = item.discount_percent || 0;
+    const finalUnitPrice = item.price * (1 - discPercent / 100);
+    const itemSubtotal = finalUnitPrice * item.quantity;
     subtotal += itemSubtotal;
+
+    // Tampilan harga (berikan badge jika produk ada diskon)
+    let priceDisplay = formatRupiah(item.price);
+    if (discPercent > 0) {
+      priceDisplay = `<small style="text-decoration: line-through; color: #888;">${formatRupiah(item.price)}</small> 
+                      <span style="color: #ef4444; font-size: 11px; font-weight: bold;">-${discPercent}%</span><br/>
+                      <b>${formatRupiah(finalUnitPrice)}</b>`;
+    }
 
     const tr = document.createElement("tr");
     if (idx === selectedCartIndex) tr.style.background = "rgba(59, 130, 246, 0.2)";
 
-    // Pilih baris pada tabel saat diklik
     tr.onclick = () => {
       selectedCartIndex = idx;
       renderCart();
@@ -332,34 +332,35 @@ function renderCart() {
     tr.innerHTML = `
       <td>${item.barcode}</td>
       <td><b>${item.name}</b></td>
-      <td style="text-align: right;">${formatRupiah(item.price)}</td>
+      <td style="text-align: right;">${priceDisplay}</td>
       <td style="text-align: center;">${item.quantity}</td>
       <td style="text-align: right;"><b>${formatRupiah(itemSubtotal)}</b></td>
     `;
     cartTableBody.appendChild(tr);
   });
 
-  const discount = parseFloat(discountInput ? discountInput.value : 0) || 0;
-  const grandTotal = Math.max(0, subtotal - discount);
+  const totals = calculateCartTotals(subtotal);
 
-  if (grandTotalDisplay) grandTotalDisplay.innerText = formatRupiah(grandTotal);
+  if (grandTotalDisplay) grandTotalDisplay.innerText = formatRupiah(totals.grandTotal);
   calculateChange();
 }
 
-// Event Listener hitung kembalian dan diskon secara instan
+// Event Listener hitung kembalian secara instan
 if (paidAmountInput) paidAmountInput.addEventListener("input", calculateChange);
-if (discountInput) discountInput.addEventListener("input", renderCart);
 
 /**
- * Menghitung selisih/kembalian dari jumlah bayar dikurangi total belanja
+ * Menghitung selisih/kembalian
  */
 function calculateChange() {
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discount = parseFloat(discountInput.value) || 0;
-  const grandTotal = Math.max(0, subtotal - discount);
+  const subtotal = cart.reduce((sum, item) => {
+    const finalPrice = item.price * (1 - (item.discount_percent || 0) / 100);
+    return sum + finalPrice * item.quantity;
+  }, 0);
+
+  const totals = calculateCartTotals(subtotal);
   const paid = parseFloat(paidAmountInput.value) || 0;
 
-  const change = paid - grandTotal;
+  const change = paid - totals.grandTotal;
 
   if (change >= 0) {
     changeDisplay.innerText = formatRupiah(change);
@@ -370,32 +371,35 @@ function calculateChange() {
   }
 }
 
-// Hapus item dari keranjang yang dipilih
+// Hapus item dari keranjang
 if (btnDeleteItem) {
   btnDeleteItem.addEventListener("click", () => {
     if (selectedCartIndex >= 0 && selectedCartIndex < cart.length) {
       cart.splice(selectedCartIndex, 1);
       selectedCartIndex = -1;
       renderCart();
+      notify("Item berhasil dihapus dari keranjang", "info");
     } else {
-      alert("Pilih barang yang ingin dihapus terlebih dahulu!");
+      notify("Pilih barang yang ingin dihapus terlebih dahulu!", "warning");
     }
   });
 }
 
 // -----------------------------------------------------------------------------
-// 4. PENDING / HOLD TRANSACTIONS (Fungsi Menahan & Memulihkan Transaksi)
+// 4. PENDING / HOLD TRANSACTIONS
 // -----------------------------------------------------------------------------
-// Menahan transaksi saat ini
 if (btnHold) {
   btnHold.addEventListener("click", () => {
     if (cart.length === 0) {
-      alert("Keranjang kosong, tidak ada transaksi untuk ditahan!");
+      notify("Keranjang kosong, tidak ada transaksi untuk ditahan!", "warning");
       return;
     }
 
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const discount = parseFloat(discountInput.value) || 0;
+    const subtotal = cart.reduce((sum, item) => {
+      const finalPrice = item.price * (1 - (item.discount_percent || 0) / 100);
+      return sum + finalPrice * item.quantity;
+    }, 0);
+    const totals = calculateCartTotals(subtotal);
 
     const heldTransaction = {
       id: Date.now(),
@@ -403,26 +407,21 @@ if (btnHold) {
       customerPhone: customerPhoneInput.value.trim() || "Non-Member",
       memberName: memberNameDisplay.innerText,
       cart: [...cart],
-      discount: discount,
-      total: Math.max(0, subtotal - discount),
+      total: totals.grandTotal,
     };
 
     pendingTransactions.push(heldTransaction);
 
     resetPOSForm();
     updatePendingButtonLabel();
-    alert("Transaksi berhasil ditahan (Hold)!");
+    notify("Transaksi berhasil ditahan (Hold)!", "success");
   });
 }
 
-/**
- * Memperbarui teks jumlah antrean transaksi pending pada tombol
- */
 function updatePendingButtonLabel() {
   if (btnPending) btnPending.innerText = `Buka Pending (${pendingTransactions.length})`;
 }
 
-// Membuka modal daftar transaksi pending
 if (btnPending) {
   btnPending.addEventListener("click", () => {
     renderPendingList();
@@ -430,9 +429,6 @@ if (btnPending) {
   });
 }
 
-/**
- * Merender daftar antrean transaksi yang sedang ditahan ke dalam modal
- */
 function renderPendingList() {
   const tbody = document.getElementById("pending-list-tbody");
   if (!tbody) return;
@@ -460,10 +456,6 @@ function renderPendingList() {
   });
 }
 
-/**
- * Mengembalikan data transaksi dari pending ke keranjang belanja utama
- * @param {number} index - Indeks posisi array transaksi pending
- */
 function resumeTransaction(index) {
   if (cart.length > 0) {
     if (!confirm("Keranjang saat ini masih terisi. Ingin menimpa keranjang dengan transaksi pending ini?")) {
@@ -473,7 +465,6 @@ function resumeTransaction(index) {
 
   const tx = pendingTransactions[index];
   cart = [...tx.cart];
-  discountInput.value = tx.discount;
   customerPhoneInput.value = tx.customerPhone !== "Non-Member" ? tx.customerPhone : "";
   memberNameDisplay.innerText = tx.memberName;
 
@@ -481,45 +472,56 @@ function resumeTransaction(index) {
   updatePendingButtonLabel();
   closeModal("modal-pending");
   renderCart();
+  notify("Transaksi pending dipulihkan!", "info");
 }
 
 // -----------------------------------------------------------------------------
-// 5. CHECKOUT PROCESS (Proses Pembayaran & Transaksi Selesai)
+// 5. CHECKOUT PROCESS
 // -----------------------------------------------------------------------------
 if (btnPayMain) {
   btnPayMain.onclick = async () => {
     if (!currentUser) {
-      alert("Silakan login terlebih dahulu!");
+      notify("Silakan login terlebih dahulu!", "warning");
       window.location.href = "login.html";
       return;
     }
 
     if (cart.length === 0) {
-      alert("Keranjang belanja kosong!");
+      notify("Keranjang belanja kosong!", "warning");
       return;
     }
 
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    // Di dalam btnPayMain.onclick:
+    // Hitung total harga normal dan total potongan diskon produk
+    let rawSubtotal = 0;
+    let totalDiscountAmount = 0;
+
+    cart.forEach((item) => {
+      const itemRawTotal = item.price * item.quantity;
+      const discPercent = item.discount_percent || 0;
+      const itemDiscAmount = itemRawTotal * (discPercent / 100);
+
+      rawSubtotal += itemRawTotal;
+      totalDiscountAmount += itemDiscAmount;
+    });
+
+    const finalGrandTotal = rawSubtotal - totalDiscountAmount;
+
     const paymentMethodInput = document.getElementById("payment-method");
     const paymentMethod = paymentMethodInput ? paymentMethodInput.value : "CASH";
-    const discount = parseFloat(discountInput.value) || 0;
-    const grandTotal = Math.max(0, subtotal - discount);
     const paidAmount = parseFloat(paidAmountInput.value) || 0;
 
-    if (paidAmount < grandTotal) {
-      alert("Uang Pembayaran Masih Kurang!");
+    if (paidAmount < finalGrandTotal) {
+      notify("Uang Pembayaran Masih Kurang!", "error");
       return;
     }
 
-    // Payload request untuk API endpoint /pos/checkout
     const payload = {
       cashier_id: currentCashier.id,
       cashier_name: currentCashier.name,
       customer_phone: customerPhoneInput.value.trim() || null,
       cart_items: cart.map((item) => ({ product_id: item.product_id, quantity: item.quantity })),
       paid_amount: paidAmount,
-      discount_amount: discount,
+      discount_amount: totalDiscountAmount,
       payment_method: paymentMethod,
     };
 
@@ -535,9 +537,9 @@ if (btnPayMain) {
         lastCompletedTransaction = {
           invoiceNumber: data.invoice_number,
           items: [...cart],
-          subtotal: subtotal,
-          discount: discount,
-          grandTotal: grandTotal,
+          subtotal: rawSubtotal,
+          discount: totalDiscountAmount,
+          grandTotal: finalGrandTotal,
           paidAmount: paidAmount,
           changeAmount: data.change_amount,
           paymentMethod: paymentMethod,
@@ -547,23 +549,20 @@ if (btnPayMain) {
 
         resetPOSForm();
         showReceiptModal(lastCompletedTransaction);
+        notify("Transaksi Berhasil!", "success");
       } else {
-        alert(`Gagal: ${data.detail}`);
+        notify(`Gagal: ${data.detail}`, "error");
       }
     } catch (err) {
-      alert("Terjadi kesalahan koneksi saat checkout!");
+      notify("Terjadi kesalahan koneksi saat checkout!", "error");
     }
   };
 }
 
-/**
- * Mengosongkan formulir POS setelah transaksi berhasil diselesaikan
- */
 function resetPOSForm() {
   cart = [];
   selectedCartIndex = -1;
   paidAmountInput.value = "";
-  discountInput.value = "0";
   customerPhoneInput.value = "";
   memberNameDisplay.innerText = "Non-Member";
   renderCart();
@@ -571,11 +570,8 @@ function resetPOSForm() {
 }
 
 // -----------------------------------------------------------------------------
-// 6. STRUK & LOCALSTORAGE SETTINGS (Pengaturan Struk & Fungsi Cetak)
+// 6. STRUK & LOCALSTORAGE SETTINGS
 // -----------------------------------------------------------------------------
-/**
- * Menyimpan nama toko, alamat, dan pesan footer struk ke browser localStorage
- */
 function saveReceiptSettings() {
   const settings = {
     storeName: document.getElementById("s-store-name").value.trim() || "MINIMARKET POS",
@@ -585,10 +581,6 @@ function saveReceiptSettings() {
   localStorage.setItem("pos_receipt_settings", JSON.stringify(settings));
 }
 
-/**
- * Mengambil pengaturan profil toko dari localStorage (dengan fallback nilai default)
- * @returns {Object} Objek pengaturan profil toko
- */
 function getReceiptSettings() {
   const saved = localStorage.getItem("pos_receipt_settings");
   if (saved) return JSON.parse(saved);
@@ -599,9 +591,6 @@ function getReceiptSettings() {
   };
 }
 
-/**
- * Memuat profil toko dari localStorage ke form edit pengaturan
- */
 function loadReceiptSettingsToForm() {
   const settings = getReceiptSettings();
   if (document.getElementById("s-store-name")) document.getElementById("s-store-name").value = settings.storeName;
@@ -612,15 +601,11 @@ function loadReceiptSettingsToForm() {
 if (document.getElementById("btn-save-settings")) {
   document.getElementById("btn-save-settings").onclick = () => {
     saveReceiptSettings();
-    alert("Pengaturan Struk Berhasil Disimpan!");
+    notify("Pengaturan Struk Berhasil Disimpan!", "success");
     closeModal("modal-receipt-settings");
   };
 }
 
-/**
- * Menampilkan struk belanja digital di modal pop-up siap cetak
- * @param {Object} txData - Data detail transaksi yang selesai
- */
 function showReceiptModal(txData) {
   const settings = getReceiptSettings();
 
@@ -635,16 +620,37 @@ function showReceiptModal(txData) {
 
   const itemsContainer = document.getElementById("r-items-list");
   itemsContainer.innerHTML = "";
+
   txData.items.forEach((item) => {
-    const itemSubtotal = item.price * item.quantity;
+    const normalUnitPrice = Number(item.price) || 0;
+    const discPercent = Number(item.discount_percent) || 0;
+
+    // Hitung potongan harga per unit & total potongan
+    const discountPerUnit = (normalUnitPrice * discPercent) / 100;
+    const finalUnitPrice = normalUnitPrice - discountPerUnit;
+    const itemSubtotal = finalUnitPrice * item.quantity;
+
+    // Baris rincian diskon (hanya ditampilkan jika ada diskon > 0%)
+    let discountRow = "";
+    if (discPercent > 0) {
+      const totalItemDiscount = discountPerUnit * item.quantity;
+      discountRow = `
+        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #666; font-style: italic; padding-left: 8px;">
+          <span>(Disc ${discPercent}% - ${formatRupiah(discountPerUnit)}/pcs)</span>
+          <span>-${formatRupiah(totalItemDiscount)}</span>
+        </div>
+      `;
+    }
+
     const row = document.createElement("div");
-    row.style.margin = "2px 0";
+    row.style.margin = "4px 0";
     row.innerHTML = `
-      <div>${item.name}</div>
+      <div><b>${item.name}</b></div>
       <div style="display: flex; justify-content: space-between; font-size: 11px;">
-        <span>${item.quantity} x ${formatRupiah(item.price)}</span>
-        <span>${formatRupiah(itemSubtotal)}</span>
+        <span>${item.quantity} x ${formatRupiah(normalUnitPrice)}</span>
+        <span>${formatRupiah(normalUnitPrice * item.quantity)}</span>
       </div>
+      ${discountRow}
     `;
     itemsContainer.appendChild(row);
   });
@@ -659,9 +665,6 @@ function showReceiptModal(txData) {
   openModal("modal-receipt");
 }
 
-/**
- * Mencetak struk belanja menggunakan fitur browser print
- */
 function printReceipt() {
   const printContents = document.getElementById("receipt-print-area").innerHTML;
   const originalContents = document.body.innerHTML;
@@ -672,11 +675,10 @@ function printReceipt() {
   window.location.reload();
 }
 
-// Tombol Cetak Ulang Struk Terakhir
 if (btnReprint) {
   btnReprint.onclick = () => {
     if (!lastCompletedTransaction) {
-      alert("Belum ada transaksi yang dapat dicetak ulang!");
+      notify("Belum ada transaksi yang dapat dicetak ulang!", "warning");
       return;
     }
     showReceiptModal(lastCompletedTransaction);
@@ -684,7 +686,7 @@ if (btnReprint) {
 }
 
 // -----------------------------------------------------------------------------
-// 7. ADMIN MODALS API LOGIC (Fungsi Kelola Produk, Member, & Laporan)
+// 7. ADMIN MODALS API LOGIC
 // -----------------------------------------------------------------------------
 if (document.getElementById("btn-save-product")) {
   document.getElementById("btn-save-product").onclick = async () => {
@@ -696,7 +698,7 @@ if (document.getElementById("btn-save-product")) {
     const category = document.getElementById("p-category") ? document.getElementById("p-category").value : "Umum";
 
     if (!barcode || !name || price <= 0) {
-      alert("Isi barcode, nama, dan harga dengan benar!");
+      notify("Isi barcode, nama, dan harga dengan benar!", "warning");
       return;
     }
 
@@ -710,12 +712,12 @@ if (document.getElementById("btn-save-product")) {
           price: price,
           purchase_price: purchase_price,
           stock: stock,
-          category: category, // MENGIRIM KATEGORI KE BACKEND
+          category: category,
         }),
       });
 
       if (res.ok) {
-        alert("Produk berhasil disimpan!");
+        notify("Produk berhasil disimpan!", "success");
         document.getElementById("p-barcode").value = "";
         document.getElementById("p-name").value = "";
         document.getElementById("p-price").value = "";
@@ -725,17 +727,14 @@ if (document.getElementById("btn-save-product")) {
         loadProductList();
       } else {
         const errData = await res.json();
-        alert(`Gagal menyimpan produk: ${errData.detail || "Terjadi kesalahan"}`);
+        notify(`Gagal menyimpan produk: ${errData.detail || "Terjadi kesalahan"}`, "error");
       }
     } catch (err) {
-      alert("Koneksi gagal!");
+      notify("Koneksi gagal!", "error");
     }
   };
 }
 
-/**
- * Memuat seluruh daftar produk dari API backend dan menampilkan ke tabel modal produk
- */
 async function loadProductList() {
   const tbody = document.getElementById("product-list-tbody");
   if (!tbody) return;
@@ -763,14 +762,13 @@ async function loadProductList() {
   }
 }
 
-// Simpan Registrasi Member Baru
 if (document.getElementById("btn-save-member")) {
   document.getElementById("btn-save-member").onclick = async () => {
     const name = document.getElementById("m-name").value.trim();
     const phone = document.getElementById("m-phone").value.trim();
 
     if (!name || !phone) {
-      alert("Isi nama dan nomor HP member!");
+      notify("Isi nama dan nomor HP member!", "warning");
       return;
     }
 
@@ -782,38 +780,29 @@ if (document.getElementById("btn-save-member")) {
       });
 
       if (res.ok) {
-        alert("Member berhasil terdaftar!");
+        notify("Member berhasil terdaftar!", "success");
         document.getElementById("m-name").value = "";
         document.getElementById("m-phone").value = "";
         closeModal("modal-members");
       } else {
-        alert("Gagal mendaftarkan member!");
+        notify("Gagal mendaftarkan member!", "error");
       }
     } catch (err) {
-      alert("Koneksi gagal!");
+      notify("Koneksi gagal!", "error");
     }
   };
 }
 
-/**
- * Memuat data ringkasan laporan penjualan harian dari backend
- */
-/**
- * Memuat data ringkasan laporan penjualan harian dari backend
- */
 async function loadReports() {
   try {
     const res = await fetch(`${API_BASE_URL}/reports/daily-summary`);
     if (res.ok) {
       const data = await res.json();
-
-      // Ambil summary dari response API (dengan fallback kompatibilitas)
       const summary = data.summary || data;
 
       document.getElementById("report-omset").innerText = formatRupiah(summary.total_sales || 0);
       document.getElementById("report-profit").innerText = formatRupiah(summary.total_profit || 0);
 
-      // Render Breakdown Metode Pembayaran jika elemen kontainernya ada
       renderModalPaymentBreakdown(summary.payment_breakdown || {});
     }
   } catch (err) {
@@ -821,19 +810,16 @@ async function loadReports() {
   }
 }
 
-/**
- * Helper untuk merender kartu rekapitulasi pembayaran di modal laporan harian
- */
 function renderModalPaymentBreakdown(breakdown) {
   const container = document.getElementById("report-payment-breakdown");
   if (!container) return;
 
   const defaultMethods = ["CASH", "QRIS", "DEBIT", "TRANSFER"];
   const colors = {
-    CASH: "#10b981", // Hijau
-    QRIS: "#3b82f6", // Biru
-    DEBIT: "#f59e0b", // Oranye/Kuning
-    TRANSFER: "#8b5cf6", // Ungu
+    CASH: "#10b981",
+    QRIS: "#3b82f6",
+    DEBIT: "#f59e0b",
+    TRANSFER: "#8b5cf6",
   };
 
   const allMethods = {};
@@ -863,10 +849,10 @@ function renderModalPaymentBreakdown(breakdown) {
 }
 
 // -----------------------------------------------------------------------------
-// 8. SHORTCUTS KEYBOARD GLOBAL (Tombol Pintas Keyboard Kasir)
+// 8. SHORTCUTS KEYBOARD GLOBAL
 // -----------------------------------------------------------------------------
 document.addEventListener("keydown", (e) => {
-  // Tombol F5: Eksekusi Pembayaran / Bayar
+  // Tombol F5: Eksekusi Pembayaran
   if (e.key === "F5") {
     e.preventDefault();
     if (btnPayMain) btnPayMain.click();
@@ -875,79 +861,10 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "Escape") {
     ["modal-products", "modal-members", "modal-reports", "modal-receipt-settings", "modal-pending", "modal-receipt"].forEach(closeModal);
   }
-  // Tombol Delete: Hapus baris item keranjang yang dipilih
+  // Tombol Delete: Hapus baris item keranjang
   else if (e.key === "Delete") {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "SELECT")) return;
     if (btnDeleteItem) btnDeleteItem.click();
   }
 });
-
-// -----------------------------------------------------------------------------
-// 9. CSV IMPORT & EXPORT (Fitur Impor & Ekspor Produk dalam Format CSV)
-// -----------------------------------------------------------------------------
-
-// Export CSV Produk
-if (document.getElementById("btn-export-csv")) {
-  document.getElementById("btn-export-csv").onclick = () => {
-    window.open(`${API_BASE_URL}/products/export-csv`, "_blank");
-  };
-}
-
-// Import CSV Produk
-if (document.getElementById("btn-import-csv")) {
-  document.getElementById("btn-import-csv").onclick = async () => {
-    const fileInput = document.getElementById("csv-file-input");
-    if (!fileInput.files || fileInput.files.length === 0) {
-      alert("Pilih file CSV terlebih dahulu!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/import-csv`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-        fileInput.value = "";
-        loadProductList(); // Refresh tabel
-      } else {
-        alert(`Gagal import: ${data.detail || "Terjadi kesalahan"}`);
-      }
-    } catch (err) {
-      alert("Koneksi gagal saat upload file!");
-    }
-  };
-}
-
-// -----------------------------------------------------------------------------
-// 10. ROLE-BASED ACCESS CONTROL (Pembatasan Akses Kasir vs Admin)
-// -----------------------------------------------------------------------------
-/**
- * Mengatur visibilitas tombol berdasarkan Role User (Admin vs Kasir)
- */
-/**
- * Mengatur hak akses fitur UI berdasarkan Role User (Admin vs Kasir)
- */
-function applyRolePermissions() {
-  if (!currentUser) return;
-
-  const isKasir = (currentUser.role || "").toLowerCase() === "kasir" || (currentUser.role || "").toLowerCase() === "cashier";
-
-  const btnReports = document.getElementById("btn-modal-reports");
-  const btnReceiptSettings = document.getElementById("btn-modal-receipt-settings");
-
-  if (isKasir) {
-    // Sembunyikan Akses Laporan Keuangan & Pengaturan Struk untuk Kasir
-    if (btnReports) btnReports.style.display = "none";
-    if (btnReceiptSettings) btnReceiptSettings.style.display = "none";
-  } else {
-    // Tampilkan semua fitur untuk Admin
-    if (btnReports) btnReports.style.display = "";
-    if (btnReceiptSettings) btnReceiptSettings.style.display = "";
-  }
-}

@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlmodel import Session, select
+from sqlmodel import Session, select, text
 from passlib.context import CryptContext
 
 from app.auth.router import router as auth_router
@@ -18,27 +18,22 @@ from app.models.pos_models import User, Product, Customer
 # ==============================================================================
 # 1. KONFIGURASI DIREKTORI & KRIPTOGRAFI PASSWORD
 # ==============================================================================
-# Menentukan folder lokasi penyimpanan file backup database
 BACKUP_DIR = Path("./backups")
 
-# Menginisialisasi context Passlib dengan algoritma bcrypt untuk hashing password
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# Fungsi untuk mengubah password teks biasa menjadi hash bcrypt aman
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-# Fungsi untuk memverifikasi apakah password teks cocok dengan hash bcrypt di DB
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
 # ==============================================================================
-# 2. FUNGSI PEMELIHARAAN SISTEM (BACKUP & SEEDING DATA)
+# 2. FUNGSI PEMELIHARAAN SISTEM (BACKUP, MIGRATION, & SEEDING DATA)
 # ==============================================================================
-# Fungsi untuk membuat salinan cadangan (backup) file SQLite secara otomatis
 def backup_database():
     db_path = Path("./minimarket.db")
     if db_path.exists():
@@ -49,9 +44,18 @@ def backup_database():
         print(f"INFO: POS-Backup: Database berhasil di-backup ke {backup_file}")
 
 
-# Fungsi untuk mengisi data awal (default/sample) jika database masih kosong
-# Fungsi untuk mengisi data awal (default/sample) jika database masih kosong
-# Tambahkan print debug di seed_initial_data
+# PERBAIKAN: Fungsi untuk auto-add kolom discount_percent jika belum ada di SQLite
+def run_auto_migrations():
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE product ADD COLUMN discount_percent FLOAT DEFAULT 0.0;"))
+            conn.commit()
+            print("[MIGRATION] Kolom discount_percent BERHASIL ditambahkan ke DB!")
+        except Exception:
+            # Mengabaikan error jika kolom sudah ada
+            pass
+
+
 def seed_initial_data():
     with Session(engine) as session:
         user_exist = session.exec(select(User)).first()
@@ -83,19 +87,22 @@ def seed_initial_data():
 # ==============================================================================
 # 3. LIFESPAN HANDLER (STARTUP & SHUTDOWN EVENTS)
 # ==============================================================================
-# Context manager untuk mengelola siklus hidup aplikasi (dijalankan saat start & stop)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Dijalankan saat aplikasi startup:
-    create_db_and_tables()  # Membuat tabel otomatis di database minimarket.db
+    # 1. Buat tabel jika belum ada
+    create_db_and_tables()
+    
+    # 2. PERBAIKAN: Jalankan auto-migration kolom baru
+    run_auto_migrations()
+    
     try:
-        seed_initial_data()  # Memasukkan data sampel jika DB baru dibuat
+        # 3. Seed data sampel
+        seed_initial_data()
         print("INFO: REST API POS Backend Siap Digunakan.")
     except Exception as e:
         print(f"ERROR: Seeding gagal: {e}")
     yield
-    # Dijalankan saat aplikasi shutdown:
-    backup_database()  # Melakukan backup database otomatis saat aplikasi dimatikan
+    backup_database()
 
 
 # ==============================================================================
@@ -103,7 +110,7 @@ async def lifespan(app: FastAPI):
 # ==============================================================================
 app = FastAPI(title="Minimarket POS API", lifespan=lifespan)
 
-# Mengaktifkan Cross-Origin Resource Sharing (CORS) agar Frontend dapat mengakses API ini
+# PERBAIKAN: Konfigurasi CORS agar mendukung akses lintas origin (127.0.0.1 & localhost)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -112,7 +119,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registrasi Router Modular REST API dari folder routers
+# Registrasi Router Modular REST API
 app.include_router(auth_router)
 app.include_router(products.router)
 app.include_router(customers.router)
@@ -120,7 +127,7 @@ app.include_router(transactions.router)
 app.include_router(reports.router)
 app.include_router(settings.router) 
 
-# Mounting direktori frontend sebagai Static Files agar dapat diakses dari browser
+# Mounting direktori frontend
 BASE_DIR = Path(__file__).resolve().parent.parent
 frontend_path = BASE_DIR / "frontend"
 
@@ -131,17 +138,13 @@ if frontend_path.exists():
 # ==============================================================================
 # 5. SCHEMAS & ROUTE AUTHENTICATION
 # ==============================================================================
-# Skema Pydantic untuk memvalidasi payload request Body dari Login Form
 class LoginRequest(BaseModel):
     username: str
     password: str
 
 
-# Endpoint untuk otentikasi login pengguna (Kasir / Admin)
 @app.post("/api/auth/login", tags=["Auth"])
 def login(req: LoginRequest, session: Session = Depends(get_db)):
-
-    # 1. Cari user di DB
     user = session.exec(
         select(User).where(User.username == req.username)
     ).first()
@@ -152,10 +155,7 @@ def login(req: LoginRequest, session: Session = Depends(get_db)):
             detail="Username atau password salah!",
         )
 
-
-    # 2. Verifikasi Password
     is_valid = verify_password(req.password, user.password)
-
 
     if not is_valid:
         raise HTTPException(
@@ -171,7 +171,6 @@ def login(req: LoginRequest, session: Session = Depends(get_db)):
     }
 
 
-# Endpoint Root dasar untuk mengecek status kesehatan server API
 @app.get("/", include_in_schema=False)
 def root():
     return {"status": "Online", "message": "Minimarket POS REST API Engine Running."}
@@ -182,5 +181,4 @@ def root():
 # ==============================================================================
 if __name__ == "__main__":
     import uvicorn
-    # Menjalankan ASGI Server Uvicorn pada host 0.0.0.0 agar bisa diakses di jaringan lokal (LAN)
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

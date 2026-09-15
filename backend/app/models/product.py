@@ -22,6 +22,7 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     cost_price = Column(Numeric(12, 2), nullable=False)    # Harga Beli
     selling_price = Column(Numeric(12, 2), nullable=False) # Harga Jual
+    discount_percent = Column(Numeric(5, 2), default=0.0, nullable=False) # <-- TAMBAHKAN KOLOM INI
     stock = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

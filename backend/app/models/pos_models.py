@@ -24,6 +24,7 @@ class Product(SQLModel, table=True):
     name: str
     price: float
     purchase_price: float = Field(default=0.0)
+    discount_percent: float = Field(default=0.0)  # <-- Tambahkan field ini
     stock: int = Field(default=0)
     category: Optional[str] = Field(default="Umum")
 
