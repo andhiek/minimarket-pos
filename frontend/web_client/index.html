@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/style.css" />
     <!-- FontAwesome untuk Ikon Toast -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- ZXing Library untuk Scanner Barcode Gambar yang Universal -->
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>
   </head>
   <body>
     <!-- Top Header -->
@@ -29,6 +31,13 @@
         <div class="form-row">
           <label for="barcode-input">Scan Barcode:</label>
           <input type="text" id="barcode-input" placeholder="Scan barcode lalu tekan Enter..." autofocus />
+          <button class="btn-action" id="btn-scan-camera" title="Scan Barcode via Kamera HP" style="background: #059669; padding: 8px 12px">📷</button>
+          <!-- Tombol Alternatif: Foto Barcode via Kamera HP / Galeri -->
+          <label for="barcode-file-input" class="btn-action" title="Ambil Foto Barcode / Upload" style="background: #0284c7; padding: 8px 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+            📸<span style="font-size: 11px; margin-left: 4px; display: none">Foto</span>
+          </label>
+          <input type="file" id="barcode-file-input" accept="image/*" capture="environment" style="display: none" />
+
           <button class="btn-action" id="btn-add">Tambah</button>
         </div>
 
@@ -256,6 +265,25 @@
         <div class="modal-footer">
           <button class="btn-action" onclick="printReceipt()">🖨️ Cetak Struk</button>
           <button class="btn-secondary" onclick="closeModal('modal-receipt')">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Scan Barcode via Kamera HP -->
+    <div class="modal-overlay" id="modal-camera-scanner">
+      <div class="modal-card" style="width: 400px; max-width: 95%">
+        <div class="modal-header">
+          <div class="modal-title">📷 Scan Barcode Produk</div>
+          <button class="modal-close" onclick="closeCameraModal()">✖</button>
+        </div>
+        <div class="modal-body" style="padding: 0; background: #000; position: relative; display: flex; justify-content: center; align-items: center; min-height: 300px">
+          <!-- Elemen Video Kamera -->
+          <video id="camera-video-preview" style="width: 100%; max-height: 350px; object-fit: cover" autoplay playsinline></video>
+          <div style="position: absolute; border: 2px dashed #10b981; width: 75%; height: 100px; pointer-events: none; border-radius: 8px"></div>
+        </div>
+        <div class="modal-footer" style="justify-content: space-between">
+          <span style="font-size: 11px; color: var(--text-muted)">Arahkan barcode ke dalam kotak hijau</span>
+          <button class="btn-secondary" onclick="closeCameraModal()">Tutup / Batal</button>
         </div>
       </div>
     </div>

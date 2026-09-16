@@ -90,7 +90,7 @@
     <!-- Script Pengolahan Form Login -->
     <script>
       // 1. Penentuan Base URL API Backend (Mendukung path relatif & fallback ke host aktif)
-      const API_BASE_URL = "http://127.0.0.1:8000/api";
+      const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
 
       // Toggle Show/Hide Password
       const togglePassword = document.getElementById("toggle-password");

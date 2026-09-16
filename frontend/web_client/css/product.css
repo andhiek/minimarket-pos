@@ -309,3 +309,74 @@ select {
     flex: 1 1 100% !important;
   }
 }
+
+/* Styling Tambahan untuk Tombol Scan Barcode Admin Gudang */
+#btn-open-scanner {
+  background: #313244;
+  color: #89b4fa;
+  border: 1px solid #45475a;
+  transition: all 0.2s ease;
+}
+
+#btn-open-scanner:hover {
+  background: #45475a;
+  color: #ffffff;
+}
+
+/* Memastikan tombol di top-controls tetap rapi di layar kecil */
+@media screen and (max-width: 768px) {
+  .right-controls {
+    flex-wrap: wrap;
+  }
+  .right-controls .btn-top,
+  .right-controls label {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* =========================================================
+   PERBAIKAN TAMPILAN MODE EDIT (AGAR TIDAK BERTUMPUK)
+   ========================================================= */
+
+/* Memastikan sel baris edit berada di posisi tengah secara vertikal */
+.excel-table tr td:has(.excel-input),
+.excel-table tr td:has(select) {
+  vertical-align: middle !important;
+}
+
+/* Memaksa kolom aksi paling kanan pada mode edit berjejer rapi horizontal */
+.excel-table td:last-child {
+  white-space: nowrap !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* Membungkus tombol aksi agar tampil sejajar berdampingan */
+.excel-table td:last-child .btn-action,
+.excel-table td:last-child button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: unset !important; /* Mencegah bentrok dengan min-height universal button */
+  margin: 0 1px !important;
+  background: #313244;
+  border-radius: 4px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.excel-table td:last-child .btn-action:hover {
+  background: #45475a;
+}
+
+/* Menyamakan tinggi input form pada tabel edit */
+.excel-table .excel-input,
+.excel-table .excel-select {
+  height: 32px !important;
+  min-height: unset !important;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}

@@ -611,8 +611,35 @@ select {
 
 /* 2. Tablet Portrait & HP Layar Lebar (<= 768px) */
 @media screen and (max-width: 768px) {
+  /* Memperbaiki body agar bisa digulir ke bawah secara penuh dan tidak terpotong */
   body {
-    padding: 10px;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 6px !important;
+  }
+
+  /* Penyesuaian Layout Utama Kasir (index.html) agar menumpuk ke bawah di HP */
+  .pos-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+    gap: 12px !important;
+  }
+
+  .left-column,
+  .right-column {
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Batasi tinggi tabel keranjang dan beri kemampuan scroll horizontal */
+  .table-container {
+    max-height: 280px !important;
+    overflow-x: auto !important;
   }
 
   .header-bar h2 {
@@ -634,7 +661,7 @@ select {
     white-space: nowrap;
   }
 
-  /* Mengubah layout utama kasir menjadi menumpuk rapi ke bawah */
+  /* Mengubah layout lama agar tetap aman jika terpanggil */
   .pos-container,
   .main-container,
   .content-wrapper {
@@ -644,7 +671,6 @@ select {
     gap: 15px !important;
   }
 
-  /* Memastikan panel kiri dan kanan mengambil lebar 100% */
   .left-panel,
   .right-panel,
   .cart-section,
@@ -654,7 +680,6 @@ select {
     box-sizing: border-box !important;
   }
 
-  /* KPI Card Laporan Keuangan di Mobile */
   .kpi-container {
     flex-direction: column !important;
   }
@@ -765,5 +790,44 @@ select {
   }
   to {
     opacity: 0;
+  }
+}
+
+/* ==============================================================================
+   CSS PRINT MEDIA QUERY (UNTUK CETAK STRUK THERMAL 58mm & 80mm)
+   ============================================================================== */
+
+/* Sembunyikan seluruh tampilan aplikasi POS saat mode print aktif */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  /* Hanya tampilkan area struk dan elemen di dalamnya */
+  #receipt-print-area,
+  #receipt-print-area * {
+    visibility: visible;
+  }
+
+  /* Atur posisi dan ukuran area cetak agar pas di kertas thermal */
+  #receipt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58mm; /* Ubah ke 80mm jika Anda menggunakan printer ukuran 80mm */
+    margin: 0;
+    padding: 2mm;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11px;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  /* Hilangkan bayangan, border modal, atau latar belakang gelap */
+  .modal,
+  .modal-content {
+    background: transparent !important;
+    box-shadow: none !important;
+    position: static !important;
   }
 }

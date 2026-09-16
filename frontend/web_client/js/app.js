@@ -4,8 +4,7 @@
  */
 
 // Konfigurasi Endpoint Backend
-const API_BASE_URL = "http://localhost:8000/api";
-
+const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
 // -----------------------------------------------------------------------------
 // STATE MANAGEMENT (Penyimpanan Status Sementara Aplikasi)
 // -----------------------------------------------------------------------------
@@ -667,22 +666,36 @@ function showReceiptModal(txData) {
 
 function printReceipt() {
   const printContents = document.getElementById("receipt-print-area").innerHTML;
-  const originalContents = document.body.innerHTML;
 
-  document.body.innerHTML = `<div style="width: 300px; margin: 0 auto; font-family: 'Courier New', monospace;">${printContents}</div>`;
-  window.print();
-  document.body.innerHTML = originalContents;
-  window.location.reload();
-}
+  const printFrame = document.createElement("iframe");
+  printFrame.style.position = "absolute";
+  printFrame.style.width = "0px";
+  printFrame.style.height = "0px";
+  printFrame.style.border = "none";
 
-if (btnReprint) {
-  btnReprint.onclick = () => {
-    if (!lastCompletedTransaction) {
-      notify("Belum ada transaksi yang dapat dicetak ulang!", "warning");
-      return;
-    }
-    showReceiptModal(lastCompletedTransaction);
-  };
+  document.body.appendChild(printFrame);
+
+  const frameDoc = printFrame.contentWindow.document;
+  frameDoc.open();
+  frameDoc.write(`
+    <html>
+      <head>
+        <title>Cetak Struk</title>
+        <style>
+          body { font-family: 'Courier New', monospace; width: 58mm; margin: 0; padding: 5px; font-size: 12px; }
+          b { font-weight: bold; }
+        </style>
+      </head>
+      <body>${printContents}</body>
+    </html>
+  `);
+  frameDoc.close();
+
+  setTimeout(() => {
+    printFrame.contentWindow.focus();
+    printFrame.contentWindow.print();
+    document.body.removeChild(printFrame);
+  }, 250);
 }
 
 // -----------------------------------------------------------------------------
@@ -866,5 +879,174 @@ document.addEventListener("keydown", (e) => {
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "SELECT")) return;
     if (btnDeleteItem) btnDeleteItem.click();
+  }
+});
+
+// ==========================================
+// FITUR BARCODE SCANNER VIA KAMERA HP
+// ==========================================
+let cameraStream = null;
+let isScanningActive = false;
+
+// Event listener untuk tombol buka kamera
+document.getElementById("btn-scan-camera")?.addEventListener("click", () => {
+  openCameraModal();
+});
+
+function openCameraModal() {
+  const modal = document.getElementById("modal-camera-scanner");
+  if (modal) modal.classList.add("active");
+  startCameraStream();
+}
+
+function closeCameraModal() {
+  const modal = document.getElementById("modal-camera-scanner");
+  if (modal) modal.classList.remove("active");
+  stopCameraStream();
+}
+
+async function startCameraStream() {
+  const videoElement = document.getElementById("camera-video-preview");
+  if (!videoElement) return;
+
+  try {
+    isScanningActive = true;
+    // Meminta izin kamera belakang HP (environment)
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+    });
+    videoElement.srcObject = cameraStream;
+    videoElement.play();
+
+    // Mulai proses pemindaian frame video
+    requestAnimationFrame(scanVideoFrame);
+  } catch (error) {
+    console.error("Gagal mengakses kamera:", error);
+    showToast("Tidak dapat mengakses kamera HP. Periksa izin browser.", "error");
+    closeCameraModal();
+  }
+}
+
+function stopCameraStream() {
+  isScanningActive = false;
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
+}
+
+// Fungsi pembacaan frame secara berkala
+async function scanVideoFrame() {
+  if (!isScanningActive) return;
+
+  const videoElement = document.getElementById("camera-video-preview");
+
+  // Jika BarcodeDetector API didukung oleh browser HP
+  if ("BarcodeDetector" in window && videoElement && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+    try {
+      const barcodeDetector = new BarcodeDetector({ formats: ["code_128", "ean_13", "ean_8", "upc_a", "qr_code"] });
+      const barcodes = await barcodeDetector.detect(videoElement);
+
+      if (barcodes.length > 0) {
+        const detectedCode = barcodes[0].rawValue;
+        console.log("Barcode terdeteksi via kamera:", detectedCode);
+
+        // Masukkan hasil scan ke input barcode utama
+        const barcodeInput = document.getElementById("barcode-input");
+        if (barcodeInput) {
+          barcodeInput.value = detectedCode;
+          // Panggil fungsi tambah produk yang sudah ada di aplikasi Anda
+          // Contoh: trigger pencarian atau tekan enter otomatis
+          triggerAddProductByBarcode(detectedCode);
+        }
+
+        // Tutup modal kamera setelah berhasil mendeteksi
+        closeCameraModal();
+        showToast(`Berhasil scan: ${detectedCode}`, "success");
+        return;
+      }
+    } catch (err) {
+      console.error("Error saat deteksi barcode:", err);
+    }
+  }
+
+  // Lanjutkan loop scan jika modal masih aktif
+  if (isScanningActive) {
+    requestAnimationFrame(scanVideoFrame);
+  }
+}
+
+// Fungsi bantu opsional jika sistem Anda membutuhkan trigger otomatis saat barcode masuk
+function triggerAddProductByBarcode(code) {
+  const barcodeInput = document.getElementById("barcode-input");
+  if (barcodeInput) {
+    barcodeInput.value = code;
+    // Simulasi tekan enter atau panggil fungsi add item yang ada di app.js Anda
+    const enterEvent = new KeyboardEvent("keypress", { key: "Enter", keyCode: 13, bubbles: true });
+    barcodeInput.dispatchEvent(enterEvent);
+  }
+}
+
+// ==========================================
+// OPSI ALTERNATIF: SCAN BARCODE VIA FOTO / FILE HP (MENGGUNAKAN ZXING)
+// ==========================================
+document.getElementById("barcode-file-input")?.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  showToast("Membaca barcode dari foto...", "info");
+
+  try {
+    const imageUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = async () => {
+      try {
+        // Gunakan ZXing BrowserCodeReader untuk mendeteksi barcode dari objek gambar/canvas
+        const codeReader = new ZXing.BrowserBarcodeReader();
+
+        // Buat elemen canvas sementara untuk memindai
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        // Proses decode gambar
+        const result = await codeReader.decodeFromImageElement(img);
+
+        if (result && result.text) {
+          const detectedCode = result.text;
+          console.log("Barcode berhasil dibaca via ZXing:", detectedCode);
+
+          // Masukkan ke input barcode utama dan proses
+          const barcodeInput = document.getElementById("barcode-input");
+          if (barcodeInput) {
+            barcodeInput.value = detectedCode;
+            triggerAddProductByBarcode(detectedCode);
+          }
+          showToast(`Berhasil scan: ${detectedCode}`, "success");
+        } else {
+          showToast("Barcode tidak ditemukan dalam foto.", "warning");
+        }
+      } catch (err) {
+        console.error("ZXing decode error:", err);
+        showToast("Barcode gagal terbaca. Pastikan foto jelas & tidak buram.", "warning");
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+
+    img.onerror = () => {
+      showToast("Gagal memuat file gambar.", "error");
+      URL.revokeObjectURL(imageUrl);
+    };
+
+    img.src = imageUrl;
+  } catch (err) {
+    console.error("Error proses file:", err);
+    showToast("Terjadi kesalahan saat memproses foto.", "error");
+  } finally {
+    e.target.value = "";
   }
 });

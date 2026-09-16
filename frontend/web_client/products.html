@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manajemen Produk - Spreadsheet View</title>
     <link rel="stylesheet" href="css/style.css" />
+    <!-- ZXing Library untuk Scanner Barcode Gambar -->
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>
     <link rel="stylesheet" href="css/product.css" />
     <script src="js/auth.js"></script>
   </head>
@@ -29,7 +31,10 @@
         <input type="file" id="import-file" accept=".csv" style="display: none" />
         <button class="btn-top btn-import" id="btn-import">📥 Import CSV</button>
         <button class="btn-top btn-export" id="btn-export">📤 Export CSV</button>
-        <button class="btn-top btn-add" id="btn-add-row">➕ Tambah Baris</button>
+        <button class="btn-top btn-add" id="btn-add-row">➕ Tambah Prod</button>
+
+        <!-- Tombol Scan Barcode diubah memanggil triggerProductCamera() -->
+        <button class="btn-top" id="btn-open-scanner" onclick="triggerProductCamera()" style="background: #313244; color: #89b4fa; border: 1px solid #45475a" title="Scan Barcode via Kamera">📷 Scan Barcode</button>
       </div>
     </div>
 
@@ -55,6 +60,34 @@
           <!-- Data produk dirender secara dinamis -->
         </tbody>
       </table>
+    </div>
+
+    <!-- Modal Scanner Kamera Elegan untuk Admin Gudang -->
+    <div class="modal-overlay" id="modal-admin-camera">
+      <div class="modal-card" style="width: 420px; max-width: 95%; background: #1e1e2e; border: 1px solid #313244; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5)">
+        <div class="modal-header" style="background: #181825; padding: 16px; border-bottom: 1px solid #313244; display: flex; justify-content: space-between; align-items: center">
+          <div class="modal-title" style="color: #cdd6f4; font-weight: 600; font-size: 1rem">📷 Scan Barcode Produk Baru</div>
+          <button class="modal-close" onclick="closeAdminCameraModal()" style="background: none; border: none; color: #a6adc8; font-size: 1.2rem; cursor: pointer">✖</button>
+        </div>
+        <div class="modal-body" style="padding: 20px; text-align: center">
+          <p style="color: #a6adc8; font-size: 0.85rem; margin-bottom: 15px">Ambil foto kemasan produk atau unggah gambar barcode dari perangkat Anda.</p>
+
+          <!-- Kotak Interaktif dengan Label & Input Native yang Sempurna untuk HP -->
+          <label for="admin-camera-file" style="display: block; border: 2px dashed #45475a; border-radius: 10px; padding: 30px; background: #11111b; cursor: pointer; transition: all 0.3s ease">
+            <div style="font-size: 40px; margin-bottom: 10px">📸</div>
+            <div style="color: #89b4fa; font-weight: 600; font-size: 0.95rem">Ketuk untuk Ambil Foto / Pilih File</div>
+            <div style="color: #6c7086; font-size: 0.75rem; margin-top: 4px">Mendukung kamera HP langsung & galeri</div>
+
+            <!-- Input file ditempatkan di dalam label agar sentuhan langsung mentrigger kamera -->
+            <input type="file" id="admin-camera-file" accept="image/*" capture="environment" style="display: none" onchange="processAdminCameraScan(event)" />
+          </label>
+
+          <div id="scan-loading-indicator" style="display: none; margin-top: 15px; color: #f9e2af; font-size: 0.85rem">⏳ Sedang memproses dan membaca piksel barcode...</div>
+        </div>
+        <div class="modal-footer" style="background: #181825; padding: 12px 16px; border-top: 1px solid #313244; display: flex; justify-content: flex-end">
+          <button class="btn-secondary" onclick="closeAdminCameraModal()" style="background: #313244; color: #cdd6f4; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer">Tutup</button>
+        </div>
+      </div>
     </div>
 
     <!-- Script logika eksternal -->

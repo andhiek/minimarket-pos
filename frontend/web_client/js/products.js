@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
 const CATEGORIES = ["Umum", "Makanan", "Minuman", "Sembako", "Perlengkapan Mandi", "Lainnya"];
 
 let productsData = [];
@@ -15,7 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRoleUI();
   setupEventListeners();
   fetchProducts();
+  ensureMobileCameraAttributes();
 });
+
+// Memastikan input file kamera memiliki atribut capture="environment" untuk mobile
+function ensureMobileCameraAttributes() {
+  const cameraInput = document.getElementById("admin-camera-file");
+  if (cameraInput && !cameraInput.hasAttribute("capture")) {
+    cameraInput.setAttribute("capture", "environment");
+  }
+}
 
 function setupRoleUI() {
   if (isKasir) {
@@ -69,6 +78,12 @@ function setupEventListeners() {
       });
       filterProducts();
     });
+  }
+
+  // Menambahkan atribut capture="environment" pada input file kamera di modal/dokumen jika ada
+  const adminCameraInput = document.getElementById("admin-camera-input");
+  if (adminCameraInput) {
+    adminCameraInput.setAttribute("capture", "environment");
   }
 }
 
@@ -156,7 +171,7 @@ function renderExcelTable() {
         <td><input class="excel-input" type="number" style="text-align: right;" value="${p.price || p.selling_price || 0}" oninput="updateProductField(${originalIndex}, 'price', this.value)"/></td>
         <td><input class="excel-input" type="number" style="text-align: center;" min="0" max="100" value="${p.discount_percent ?? 0}" oninput="updateProductField(${originalIndex}, 'discount_percent', this.value)"/></td>
         <td><input class="excel-input" type="number" style="text-align: center;" value="${p.stock || 0}" oninput="updateProductField(${originalIndex}, 'stock', this.value)"/></td>
-        <td style="text-align: center;">
+        <td style="text-align: center; white-space: nowrap;">
           <button class="btn-action" title="Simpan" onclick="saveRow(${originalIndex})">💾</button>
           <button class="btn-action" title="Batal Edit" onclick="cancelEdit(${originalIndex})">❌</button>
           <button class="btn-action" title="Hapus" onclick="deleteRow(${originalIndex})">🗑️</button>
@@ -408,4 +423,306 @@ async function handleImportCSV(event) {
   } finally {
     event.target.value = "";
   }
+}
+
+// ==========================================
+// FITUR SCAN BARCODE KAMERA UNTUK ADMIN GUDANG
+// ==========================================
+async function handleProductCameraScan(index, event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  alert("Memproses foto barcode...");
+
+  try {
+    const imageUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = async () => {
+      try {
+        const codeReader = new ZXing.BrowserBarcodeReader();
+        const result = await codeReader.decodeFromImageElement(img);
+
+        if (result && result.text) {
+          const detectedCode = result.text;
+          console.log("Barcode produk terdeteksi:", detectedCode);
+
+          // Update data produk di baris tersebut
+          productsData[index].barcode = detectedCode;
+          filterProducts(); // Render ulang tabel agar nilai input terisi otomatis
+          alert(`Berhasil scan barcode: ${detectedCode}`);
+        } else {
+          alert("Barcode tidak ditemukan dalam foto. Coba ambil ulang lebih jelas.");
+        }
+      } catch (err) {
+        console.error("ZXing decode error:", err);
+        alert("Gagal membaca barcode dari foto. Pastikan tidak buram.");
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+
+    img.onerror = () => {
+      alert("Gagal memuat file foto.");
+      URL.revokeObjectURL(imageUrl);
+    };
+
+    img.src = imageUrl;
+  } catch (err) {
+    console.error("Error proses file foto:", err);
+    alert("Terjadi kesalahan saat memproses foto.");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+// ==========================================
+// FITUR SCAN KAMERA LANGSUNG (TANPA MODAL BERAT)
+// ==========================================
+
+// Fungsi yang dipicu saat tombol "Scan Kamera" diketuk
+function triggerDirectCamera() {
+  const fileInput = document.getElementById("direct-camera-input");
+  if (fileInput) {
+    // Reset value agar event 'onchange' tetap terbaca meskipun file yang sama dipilih dua kali
+    fileInput.value = "";
+    fileInput.click();
+  } else {
+    alert("Elemen input kamera tidak ditemukan di halaman!");
+  }
+}
+
+// Proses Foto Menggunakan ZXing dengan Indikator Loading Otomatis
+async function processAdminCameraScan(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Buat elemen indikator loading sederhana secara dinamis jika belum ada
+  let loadingIndicator = document.getElementById("scan-loading-indicator");
+  if (!loadingIndicator) {
+    loadingIndicator = document.createElement("div");
+    loadingIndicator.id = "scan-loading-indicator";
+    loadingIndicator.style.cssText =
+      "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e1e2e; color: #f9e2af; padding: 12px 24px; border-radius: 8px; z-index: 99999; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: 600;";
+    loadingIndicator.innerHTML = "⏳ Sedang memproses dan membaca piksel barcode...";
+    document.body.appendChild(loadingIndicator);
+  } else {
+    loadingIndicator.style.display = "block";
+  }
+
+  try {
+    const imageUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = async () => {
+      try {
+        const codeReader = new ZXing.BrowserBarcodeReader();
+        const result = await codeReader.decodeFromImageElement(img);
+
+        if (result && result.text) {
+          const detectedCode = result.text;
+          console.log("Admin Scan Berhasil:", detectedCode);
+
+          // Cek apakah ada baris yang sedang aktif diedit atau buat baris baru otomatis
+          let targetIndex = productsData.findIndex((p) => p.isEditing);
+
+          if (targetIndex === -1) {
+            // Jika belum ada baris aktif diedit, buat baris baru otomatis dengan barcode ini
+            productsData.unshift({
+              barcode: detectedCode,
+              name: "",
+              category: "Umum",
+              purchase_price: 0,
+              price: 0,
+              discount_percent: 0,
+              stock: 0,
+              isEditing: true,
+              isSelected: false,
+            });
+          } else {
+            // Masukkan ke baris yang sedang diedit
+            productsData[targetIndex].barcode = detectedCode;
+          }
+
+          filterProducts();
+          alert(`✨ Berhasil memindai barcode: ${detectedCode}`);
+        } else {
+          alert("⚠️ Barcode tidak ditemukan dalam foto. Pastikan pencahayaan cukup & tidak buram.");
+        }
+      } catch (err) {
+        console.error("ZXing decode error:", err);
+        alert("⚠️ Gagal membaca barcode dari foto. Coba ambil dari sudut lain.");
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+        if (loadingIndicator) loadingIndicator.style.display = "none";
+      }
+    };
+
+    img.onerror = () => {
+      alert("Gagal memuat file gambar.");
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      URL.revokeObjectURL(imageUrl);
+    };
+
+    img.src = imageUrl;
+  } catch (err) {
+    console.error("Error file process:", err);
+    alert("Terjadi kesalahan sistem saat memproses foto.");
+    if (loadingIndicator) loadingIndicator.style.display = "none";
+  } finally {
+    event.target.value = "";
+  }
+}
+
+// ==========================================
+// PUSAT FITUR SCAN KAMERA DENGAN KOMPRESI OTOMATIS
+// ==========================================
+function triggerProductCamera() {
+  let dynamicInput = document.getElementById("dynamic-camera-scanner");
+  if (!dynamicInput) {
+    dynamicInput = document.createElement("input");
+    dynamicInput.type = "file";
+    dynamicInput.id = "dynamic-camera-scanner";
+    dynamicInput.accept = "image/*";
+    dynamicInput.capture = "environment";
+    dynamicInput.style.display = "none";
+    document.body.appendChild(dynamicInput);
+
+    dynamicInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const showMsg = typeof notify === "function" ? notify : (msg) => alert(msg);
+      showMsg("⏳ Mengoptimalkan & membaca foto barcode...", "info");
+
+      try {
+        let detectedCode = "";
+
+        // Kompresi gambar agar tidak "Kesalahan Sistem" akibat memori/resolusi terlalu besar
+        const compressedBlob = await resizeImageToMax(file, 1200);
+
+        // 1. Coba deteksi via BarcodeDetector bawaan HP
+        if ("BarcodeDetector" in window) {
+          try {
+            const barcodeDetector = new BarcodeDetector({
+              formats: ["ean_13", "ean_8", "code_128", "code_39", "upc_a", "upc_e", "qr_code"],
+            });
+            const bitmap = await createImageBitmap(compressedBlob);
+            const results = await barcodeDetector.detect(bitmap);
+            if (results && results.length > 0) {
+              detectedCode = results[0].rawValue;
+            }
+          } catch (err) {
+            console.log("BarcodeDetector native gagal, beralih ke ZXing:", err);
+          }
+        }
+
+        // 2. Jika belum ketemu, gunakan ZXing
+        if (!detectedCode) {
+          const zxingLib = window.ZXing || (typeof ZXing !== "undefined" ? ZXing : null);
+          if (zxingLib && zxingLib.BrowserBarcodeReader) {
+            const imageUrl = URL.createObjectURL(compressedBlob);
+            const img = new Image();
+
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = imageUrl;
+            });
+
+            const codeReader = new zxingLib.BrowserBarcodeReader();
+            const result = await codeReader.decodeFromImageElement(img);
+            if (result && result.text) {
+              detectedCode = result.text;
+            }
+            URL.revokeObjectURL(imageUrl);
+          } else {
+            throw new Error("Library ZXing tidak tersedia.");
+          }
+        }
+
+        // 3. Masukkan hasil scan ke tabel
+        if (detectedCode) {
+          showMsg(`✨ SUKSES! Barcode: ${detectedCode}`, "success");
+
+          const searchInput = document.getElementById("search-input");
+          if (searchInput) searchInput.value = "";
+
+          let targetIndex = productsData.findIndex((p) => p.isEditing);
+
+          if (targetIndex === -1) {
+            productsData.unshift({
+              barcode: detectedCode,
+              name: "",
+              category: "Umum",
+              purchase_price: 0,
+              price: 0,
+              discount_percent: 0,
+              stock: 1,
+              isEditing: true,
+              isSelected: false,
+            });
+          } else {
+            productsData[targetIndex].barcode = detectedCode;
+          }
+
+          filterProducts();
+        } else {
+          showMsg("⚠️ Barcode tidak terbaca. Pastikan posisi tegak, terang, dan tidak buram.", "warning");
+        }
+      } catch (err) {
+        console.error("Error proses scan:", err);
+        showMsg("Gagal membaca barcode: Pastikan kamera stabil saat mengambil foto.", "error");
+      } finally {
+        dynamicInput.value = "";
+      }
+    });
+  }
+
+  dynamicInput.click();
+}
+
+// Fungsi pembantu untuk memperkecil ukuran resolusi gambar secara otomatis
+function resizeImageToMax(file, maxDimension) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Gagal kompresi gambar"));
+          },
+          "image/jpeg",
+          0.85,
+        );
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
