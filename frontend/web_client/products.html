@@ -29,11 +29,16 @@
 
       <div class="right-controls" id="admin-actions">
         <input type="file" id="import-file" accept=".csv" style="display: none" />
-        <button class="btn-top btn-import" id="btn-import">📥 Import CSV</button>
-        <button class="btn-top btn-export" id="btn-export">📤 Export CSV</button>
+
+        <!-- Tombol Import CSV dengan Gaya Modern & Elegan -->
+        <button class="btn-top" id="btn-import" style="background: #313244; color: #38bdf8; border: 1px solid #45475a; transition: all 0.2s ease" title="Impor Data Produk dari CSV">📥 Import CSV</button>
+
+        <!-- Tombol Export CSV dengan Gaya Modern & Elegan -->
+        <button class="btn-top" id="btn-export" style="background: #313244; color: #34d399; border: 1px solid #45475a; transition: all 0.2s ease" title="Ekspor Data Produk ke CSV">📤 Export CSV</button>
+
         <button class="btn-top btn-add" id="btn-add-row">➕ Tambah Prod</button>
 
-        <!-- Tombol Scan Barcode diubah memanggil triggerProductCamera() -->
+        <!-- Tombol Scan Barcode -->
         <button class="btn-top" id="btn-open-scanner" onclick="triggerProductCamera()" style="background: #313244; color: #89b4fa; border: 1px solid #45475a" title="Scan Barcode via Kamera">📷 Scan Barcode</button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 // js/auth.js - Session & Auto-Logout Guard
 
-const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // Batas inactivity: 15 menit (sesuaikan sesuai kebutuhan)
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // Batas inactivity: 15 menit
 let inactivityTimer = null;
 
 // 1. Check Session saat Halaman Dibuka
@@ -69,5 +69,35 @@ function redirectToLogin() {
   }
 }
 
-// Jalankan pemeriksaan session secara instan (sebelum DOM sepenuhnya dimuat)
+// 6. Fungsi Baru: Kontrol Akses Berdasarkan Role untuk UI Dashboard
+function applyRoleAccessControl() {
+  try {
+    const rawUser = localStorage.getItem("pos_current_user");
+    const btnUsers = document.getElementById("menu-btn-users");
+
+    if (rawUser && btnUsers) {
+      let role = "";
+      try {
+        const userObj = JSON.parse(rawUser);
+        role = userObj.role || "";
+      } catch (e) {
+        role = rawUser;
+      }
+
+      // Tampilkan tombol Manajemen Karyawan hanya jika role adalah ADMIN
+      if (role.toUpperCase() === "ADMIN" || rawUser.toLowerCase().includes("admin")) {
+        btnUsers.style.display = "block";
+      } else {
+        btnUsers.style.display = "none";
+      }
+    }
+  } catch (error) {
+    console.error("Gagal menerapkan kontrol akses role:", error);
+  }
+}
+
+// Jalankan pemeriksaan session secara instan
 checkSession();
+
+// Jalankan kontrol akses UI setelah elemen halaman siap dimuat
+document.addEventListener("DOMContentLoaded", applyRoleAccessControl);

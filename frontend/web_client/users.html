@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manajemen Karyawan - Minimarket POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg-main: #13111c;
+        --bg-card: #1e1b2e;
+        --bg-table: #1a1728;
+        --border-color: #2d2b42;
+        --text-main: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent-blue: #38bdf8;
+        --accent-green: #34d399;
+        --accent-red: #f87171;
+        --primary: #6366f1;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        padding: 24px;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .btn {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      .btn-secondary {
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+      }
+
+      .btn-success {
+        background-color: var(--accent-green);
+        color: #064e3b;
+      }
+
+      .btn-danger {
+        background-color: var(--accent-red);
+        color: #7f1d1d;
+      }
+
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .search-input {
+        padding: 10px 14px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        width: 300px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.95rem;
+      }
+
+      th {
+        background-color: var(--bg-table);
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+      }
+
+      tr:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+      }
+
+      .badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .badge-admin {
+        background-color: rgba(56, 189, 248, 0.1);
+        color: var(--accent-blue);
+      }
+      .badge-kasir {
+        background-color: rgba(52, 211, 153, 0.1);
+        color: var(--accent-green);
+      }
+      .badge-active {
+        background-color: rgba(52, 211, 153, 0.15);
+        color: var(--accent-green);
+      }
+      .badge-inactive {
+        background-color: rgba(248, 113, 113, 0.15);
+        color: var(--accent-red);
+      }
+
+      /* Modal Styling */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 24px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 14px;
+        background-color: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        font-size: 0.95rem;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      textarea {
+        resize: vertical;
+        height: 80px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-container">
+      <div class="header-title">
+        <a href="index.html" class="btn btn-secondary">← Kembali ke POS</a>
+        <h1>👥 Manajemen Karyawan & Kasir</h1>
+      </div>
+      <button class="btn" onclick="openModal()">+ Tambah Karyawan</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan NIK atau Nama..." onkeyup="filterUsers()" />
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>No. Induk Karyawan</th>
+            <th>Nama Lengkap</th>
+            <th>Kontak (No. HP)</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <!-- Data akan dimuat melalui JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal Tambah Karyawan -->
+    <div id="userModal" class="modal">
+      <div class="modal-content">
+        <h2 style="margin-bottom: 16px; font-size: 1.2rem">Tambah Karyawan Baru</h2>
+        <form id="userForm" onsubmit="saveUser(event)">
+          <div class="form-group">
+            <label>Nomor Induk Karyawan (NIK)</label>
+            <input type="text" id="nik" required autocomplete="off" placeholder="Contoh: EMP001" />
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="full_name" required autocomplete="off" placeholder="Nama lengkap karyawan" />
+          </div>
+          <div class="form-group">
+            <label>Nomor HP / WhatsApp</label>
+            <input type="tel" id="phone" autocomplete="off" placeholder="Contoh: 081234567890" />
+          </div>
+          <div class="form-group">
+            <label>Alamat Lengkap</label>
+            <textarea id="address" autocomplete="off" placeholder="Alamat domisili karyawan..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>PIN Kasir (4-6 Digit untuk Login Cepat)</label>
+            <input type="password" id="pin" maxlength="6" required autocomplete="new-password" placeholder="1234" />
+          </div>
+          <div class="form-group">
+            <label>Role / Hak Akses</label>
+            <select id="role">
+              <option value="KASIR">KASIR</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
+            <button type="submit" class="btn">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:8000";
+      let allUsers = [];
+
+      async function fetchUsers() {
+        try {
+          const response = await fetch(`${API_URL}/api/users`);
+          allUsers = await response.json();
+          renderTable(allUsers);
+        } catch (error) {
+          console.error("Gagal memuat data pengguna:", error);
+        }
+      }
+
+      function renderTable(users) {
+        const tbody = document.getElementById("userTableBody");
+        tbody.innerHTML = "";
+
+        if (users.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Tidak ada data karyawan ditemukan.</td></tr>`;
+          return;
+        }
+
+        users.forEach((user, index) => {
+          const row = document.createElement("tr");
+
+          const roleBadge = user.role === "ADMIN" ? "badge-admin" : "badge-kasir";
+          const statusBadge = user.is_active ? "badge-active" : "badge-inactive";
+          const statusText = user.is_active ? "Aktif" : "Non-Aktif";
+          const toggleBtnText = user.is_active ? "Nonaktifkan" : "Aktifkan";
+          const toggleBtnClass = user.is_active ? "btn-danger" : "btn-success";
+          const phoneText = user.phone || "-";
+
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td><strong>${user.nik || "-"}</strong></td>
+            <td>${user.full_name}</td>
+            <td>${phoneText}</td>
+            <td><span class="badge ${roleBadge}">${user.role}</span></td>
+            <td><span class="badge ${statusBadge}">${statusText}</span></td>
+            <td>
+                <button class="btn ${toggleBtnClass}" style="padding: 6px 12px; font-size: 0.8rem;" onclick="toggleStatus(${user.id})">
+                    ${toggleBtnText}
+                </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      function filterUsers() {
+        const keyword = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = allUsers.filter((user) => (user.nik && user.nik.toLowerCase().includes(keyword)) || (user.full_name && user.full_name.toLowerCase().includes(keyword)));
+        renderTable(filtered);
+      }
+
+      function openModal() {
+        document.getElementById("userModal").style.display = "flex";
+      }
+
+      function closeModal() {
+        document.getElementById("userModal").style.display = "none";
+        document.getElementById("userForm").reset();
+      }
+
+      async function saveUser(event) {
+        event.preventDefault();
+
+        const nikVal = document.getElementById("nik").value.trim();
+        const pinVal = document.getElementById("pin").value.trim();
+
+        const data = {
+          nik: nikVal,
+          full_name: document.getElementById("full_name").value,
+          phone: document.getElementById("phone").value,
+          address: document.getElementById("address").value,
+          username: "emp_" + nikVal,
+          password: "pwd_" + pinVal,
+          pin: pinVal,
+          role: document.getElementById("role").value,
+        };
+
+        try {
+          const response = await fetch(`${API_URL}/api/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message || "Karyawan baru berhasil ditambahkan!");
+            closeModal();
+            fetchUsers();
+          } else {
+            alert(result.detail || "Gagal menambahkan karyawan.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Terjadi kesalahan koneksi ke server.");
+        }
+      }
+
+      async function toggleStatus(userId) {
+        if (!confirm("Apakah Anda yakin ingin mengubah status aktif karyawan ini?")) return;
+
+        try {
+          const response = await fetch(`${API_URL}/api/users/${userId}/toggle-status`, {
+            method: "PATCH",
+          });
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message || "Status berhasil diubah.");
+            fetchUsers();
+          } else {
+            alert(result.detail || "Gagal mengubah status.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Terjadi kesalahan koneksi ke server.");
+        }
+      }
+
+      window.onload = fetchUsers;
+    </script>
+  </body>
+</html>

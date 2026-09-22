@@ -1,4 +1,4 @@
-const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
+const API_BASE_URL = `https://${window.location.hostname}:8000/api`;
 const CATEGORIES = ["Umum", "Makanan", "Minuman", "Sembako", "Perlengkapan Mandi", "Lainnya"];
 
 let productsData = [];

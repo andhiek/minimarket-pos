@@ -4,7 +4,7 @@
  */
 
 // Konfigurasi Endpoint Backend
-const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
+const API_BASE_URL = `https://${window.location.hostname}:8000/api`;
 // -----------------------------------------------------------------------------
 // STATE MANAGEMENT (Penyimpanan Status Sementara Aplikasi)
 // -----------------------------------------------------------------------------
@@ -39,16 +39,10 @@ const btnReprint = document.getElementById("btn-reprint");
 // -----------------------------------------------------------------------------
 // HELPER FUNCTIONS
 // -----------------------------------------------------------------------------
-/**
- * Memformat angka menjadi format mata uang Rupiah Indonesia (contoh: Rp 15.000)
- * @param {number} num - Angka nominal
- * @returns {string} String terformat Rupiah
- */
 function formatRupiah(num) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(num || 0);
 }
 
-// Helper Toast Notification (Fallback ke alert jika pos-helpers.js tidak dimuat)
 function notify(message, type = "info") {
   if (typeof showToast === "function") {
     showToast(message, type);
@@ -58,15 +52,13 @@ function notify(message, type = "info") {
 }
 
 // -----------------------------------------------------------------------------
-// 0. AUTHENTICATION & USER MANAGEMENT
+// 0. AUTHENTICATION & USER MANAGEMENT & PROFILE DROPDOWN
 // -----------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthStatus();
+  initProfileDropdown();
 });
 
-/**
- * Memeriksa status login kasir dari localStorage. Jika tidak ada, alihkan ke login.html
- */
 function checkAuthStatus() {
   if (!currentUser) {
     window.location.href = "login.html";
@@ -75,33 +67,89 @@ function checkAuthStatus() {
   updateUserDisplay();
 }
 
-/**
- * Memperbarui tampilan nama dan role kasir di navbar/header aplikasi
- */
 function updateUserDisplay() {
   const nameDisplay = document.getElementById("current-user-name");
   const roleDisplay = document.getElementById("current-user-role");
+  const dropdownUserNameInfo = document.getElementById("dropdown-username-info");
+  const userAvatar = document.getElementById("user-avatar");
+  const btnDropdownUsers = document.getElementById("menu-dropdown-users");
 
   if (currentUser) {
-    if (nameDisplay) nameDisplay.innerText = currentUser.full_name || currentUser.username;
-    if (roleDisplay) roleDisplay.innerText = (currentUser.role || "cashier").toUpperCase();
+    const fullName = currentUser.full_name || currentUser.username || "User";
+    const role = (currentUser.role || "cashier").toUpperCase();
 
-    // Sync data kasir aktif untuk payload checkout
+    if (nameDisplay) nameDisplay.innerText = fullName;
+    if (roleDisplay) roleDisplay.innerText = role;
+    if (dropdownUserNameInfo) dropdownUserNameInfo.innerText = fullName;
+    if (userAvatar) userAvatar.innerText = fullName.charAt(0).toUpperCase();
+
     currentCashier.id = currentUser.id;
-    currentCashier.name = currentUser.full_name || currentUser.username;
+    currentCashier.name = fullName;
+
+    // Kontrol Akses Menu Karyawan Khusus Admin di dalam Dropdown
+    if (btnDropdownUsers) {
+      if (role === "ADMIN") {
+        btnDropdownUsers.style.display = "flex";
+      } else {
+        btnDropdownUsers.style.display = "none";
+      }
+    }
   }
 }
 
-// Event Listener tombol ganti akun / Logout
-const btnSwitchUser = document.getElementById("btn-switch-user");
-if (btnSwitchUser) {
-  btnSwitchUser.addEventListener("click", () => {
-    if (confirm("Apakah Anda yakin ingin mengganti akun kasir / logout?")) {
-      currentUser = null;
-      localStorage.removeItem("pos_current_user");
-      window.location.href = "login.html";
-    }
-  });
+// Inisialiasi Interaksi Dropdown Profil Header Atas Kanan
+function initProfileDropdown() {
+  const profileMenu = document.getElementById("user-profile-menu");
+  const dropdownContent = document.getElementById("profile-dropdown-content");
+
+  if (profileMenu && dropdownContent) {
+    profileMenu.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isVisible = dropdownContent.style.display === "block";
+      dropdownContent.style.display = isVisible ? "none" : "block";
+    });
+
+    document.addEventListener("click", () => {
+      dropdownContent.style.display = "none";
+    });
+
+    dropdownContent.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  // Tombol pintasan buka Modal Member dari dalam dropdown
+  const btnMembersDropdown = document.getElementById("menu-modal-members-dropdown");
+  if (btnMembersDropdown) {
+    btnMembersDropdown.addEventListener("click", (e) => {
+      e.preventDefault();
+      dropdownContent.style.display = "none";
+      openModal("modal-members");
+    });
+  }
+
+  // Tombol pintasan buka Modal Setting Struk dari dalam dropdown
+  const btnSettingsDropdown = document.getElementById("menu-modal-settings-dropdown");
+  if (btnSettingsDropdown) {
+    btnSettingsDropdown.addEventListener("click", (e) => {
+      e.preventDefault();
+      dropdownContent.style.display = "none";
+      openModal("modal-receipt-settings");
+    });
+  }
+
+  // Aksi Logout dari dalam dropdown
+  const btnLogoutDropdown = document.getElementById("btn-dropdown-logout");
+  if (btnLogoutDropdown) {
+    btnLogoutDropdown.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (confirm("Apakah Anda yakin ingin mengganti akun kasir / logout?")) {
+        currentUser = null;
+        localStorage.removeItem("pos_current_user");
+        window.location.href = "login.html";
+      }
+    });
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -121,13 +169,12 @@ if (themeToggleBtn) {
 }
 
 // -----------------------------------------------------------------------------
-// 2. MODAL MANAGEMENT (Manajer Jendela Pop-up)
+// 2. MODAL MANAGEMENT
 // -----------------------------------------------------------------------------
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.add("active");
-    if (modalId === "modal-products") loadProductList();
     if (modalId === "modal-reports") loadReports();
     if (modalId === "modal-receipt-settings") loadReceiptSettingsToForm();
   }
@@ -141,17 +188,11 @@ function closeModal(modalId) {
   }
 }
 
-// Menghubungkan Tombol Top Navbar dengan Modal masing-masing
-if (document.getElementById("btn-modal-products")) document.getElementById("btn-modal-products").onclick = () => openModal("modal-products");
-if (document.getElementById("btn-modal-members")) document.getElementById("btn-modal-members").onclick = () => openModal("modal-members");
-if (document.getElementById("btn-modal-reports")) document.getElementById("btn-modal-reports").onclick = () => openModal("modal-reports");
-if (document.getElementById("btn-modal-receipt-settings")) document.getElementById("btn-modal-receipt-settings").onclick = () => openModal("modal-receipt-settings");
-
 // -----------------------------------------------------------------------------
-// 3. SCAN & CART OPERATIONS (Pencarian Produk & Operasi Keranjang)
+// 3. SCAN & CART OPERATIONS
 // -----------------------------------------------------------------------------
 async function handleAddProduct() {
-  const query = barcodeInput.value.trim();
+  const query = barcodeInput ? barcodeInput.value.trim() : "";
   if (!query) return;
 
   try {
@@ -175,8 +216,10 @@ async function handleAddProduct() {
         };
 
         addToCart(productData);
-        barcodeInput.value = "";
-        barcodeInput.focus();
+        if (barcodeInput) {
+          barcodeInput.value = "";
+          barcodeInput.focus();
+        }
       } else if (products.length > 1) {
         showProductSearchResults(products);
       } else {
@@ -223,14 +266,15 @@ function showProductSearchResults(products) {
       purchase_price: selected.purchase_price || 0,
     });
 
-    barcodeInput.value = "";
-    barcodeInput.focus();
+    if (barcodeInput) {
+      barcodeInput.value = "";
+      barcodeInput.focus();
+    }
   } else if (choice !== null) {
     notify("Pilihan tidak valid!", "warning");
   }
 }
 
-// Pencarian Member berdasarkan Nomor Telepon
 if (btnSearchMember) {
   btnSearchMember.addEventListener("click", async () => {
     const phone = customerPhoneInput.value.trim();
@@ -252,9 +296,6 @@ if (btnSearchMember) {
   });
 }
 
-/**
- * Menambahkan objek produk ke dalam keranjang
- */
 function addToCart(product) {
   if (!product) return;
 
@@ -289,30 +330,22 @@ function addToCart(product) {
   renderCart();
 }
 
-/**
- * Menghitung Total Belanja dari subtotal produk
- */
 function calculateCartTotals(subtotal) {
   const grandTotal = Math.max(0, subtotal);
   return { grandTotal };
 }
 
-/**
- * Merender ulang tabel keranjang (dengan perhitungan diskon per produk)
- */
 function renderCart() {
   if (!cartTableBody) return;
   cartTableBody.innerHTML = "";
   let subtotal = 0;
 
   cart.forEach((item, idx) => {
-    // Hitung harga setelah diskon produk
     const discPercent = item.discount_percent || 0;
     const finalUnitPrice = item.price * (1 - discPercent / 100);
     const itemSubtotal = finalUnitPrice * item.quantity;
     subtotal += itemSubtotal;
 
-    // Tampilan harga (berikan badge jika produk ada diskon)
     let priceDisplay = formatRupiah(item.price);
     if (discPercent > 0) {
       priceDisplay = `<small style="text-decoration: line-through; color: #888;">${formatRupiah(item.price)}</small> 
@@ -339,17 +372,12 @@ function renderCart() {
   });
 
   const totals = calculateCartTotals(subtotal);
-
   if (grandTotalDisplay) grandTotalDisplay.innerText = formatRupiah(totals.grandTotal);
   calculateChange();
 }
 
-// Event Listener hitung kembalian secara instan
 if (paidAmountInput) paidAmountInput.addEventListener("input", calculateChange);
 
-/**
- * Menghitung selisih/kembalian
- */
 function calculateChange() {
   const subtotal = cart.reduce((sum, item) => {
     const finalPrice = item.price * (1 - (item.discount_percent || 0) / 100);
@@ -358,7 +386,6 @@ function calculateChange() {
 
   const totals = calculateCartTotals(subtotal);
   const paid = parseFloat(paidAmountInput.value) || 0;
-
   const change = paid - totals.grandTotal;
 
   if (change >= 0) {
@@ -370,7 +397,6 @@ function calculateChange() {
   }
 }
 
-// Hapus item dari keranjang
 if (btnDeleteItem) {
   btnDeleteItem.addEventListener("click", () => {
     if (selectedCartIndex >= 0 && selectedCartIndex < cart.length) {
@@ -410,7 +436,6 @@ if (btnHold) {
     };
 
     pendingTransactions.push(heldTransaction);
-
     resetPOSForm();
     updatePendingButtonLabel();
     notify("Transaksi berhasil ditahan (Hold)!", "success");
@@ -490,7 +515,6 @@ if (btnPayMain) {
       return;
     }
 
-    // Hitung total harga normal dan total potongan diskon produk
     let rawSubtotal = 0;
     let totalDiscountAmount = 0;
 
@@ -504,7 +528,6 @@ if (btnPayMain) {
     });
 
     const finalGrandTotal = rawSubtotal - totalDiscountAmount;
-
     const paymentMethodInput = document.getElementById("payment-method");
     const paymentMethod = paymentMethodInput ? paymentMethodInput.value : "CASH";
     const paidAmount = parseFloat(paidAmountInput.value) || 0;
@@ -623,13 +646,9 @@ function showReceiptModal(txData) {
   txData.items.forEach((item) => {
     const normalUnitPrice = Number(item.price) || 0;
     const discPercent = Number(item.discount_percent) || 0;
-
-    // Hitung potongan harga per unit & total potongan
     const discountPerUnit = (normalUnitPrice * discPercent) / 100;
     const finalUnitPrice = normalUnitPrice - discountPerUnit;
-    const itemSubtotal = finalUnitPrice * item.quantity;
 
-    // Baris rincian diskon (hanya ditampilkan jika ada diskon > 0%)
     let discountRow = "";
     if (discPercent > 0) {
       const totalItemDiscount = discountPerUnit * item.quantity;
@@ -666,7 +685,6 @@ function showReceiptModal(txData) {
 
 function printReceipt() {
   const printContents = document.getElementById("receipt-print-area").innerHTML;
-
   const printFrame = document.createElement("iframe");
   printFrame.style.position = "absolute";
   printFrame.style.width = "0px";
@@ -674,7 +692,6 @@ function printReceipt() {
   printFrame.style.border = "none";
 
   document.body.appendChild(printFrame);
-
   const frameDoc = printFrame.contentWindow.document;
   frameDoc.open();
   frameDoc.write(`
@@ -699,82 +716,8 @@ function printReceipt() {
 }
 
 // -----------------------------------------------------------------------------
-// 7. ADMIN MODALS API LOGIC
+// 7. MEMBER & REPORT MODALS API LOGIC
 // -----------------------------------------------------------------------------
-if (document.getElementById("btn-save-product")) {
-  document.getElementById("btn-save-product").onclick = async () => {
-    const barcode = document.getElementById("p-barcode").value.trim();
-    const name = document.getElementById("p-name").value.trim();
-    const price = parseFloat(document.getElementById("p-price").value) || 0;
-    const purchase_price = parseFloat(document.getElementById("p-cost").value) || 0;
-    const stock = parseInt(document.getElementById("p-stock").value) || 0;
-    const category = document.getElementById("p-category") ? document.getElementById("p-category").value : "Umum";
-
-    if (!barcode || !name || price <= 0) {
-      notify("Isi barcode, nama, dan harga dengan benar!", "warning");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/products`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          barcode: barcode,
-          name: name,
-          price: price,
-          purchase_price: purchase_price,
-          stock: stock,
-          category: category,
-        }),
-      });
-
-      if (res.ok) {
-        notify("Produk berhasil disimpan!", "success");
-        document.getElementById("p-barcode").value = "";
-        document.getElementById("p-name").value = "";
-        document.getElementById("p-price").value = "";
-        document.getElementById("p-cost").value = "";
-        document.getElementById("p-stock").value = "";
-        if (document.getElementById("p-category")) document.getElementById("p-category").value = "Umum";
-        loadProductList();
-      } else {
-        const errData = await res.json();
-        notify(`Gagal menyimpan produk: ${errData.detail || "Terjadi kesalahan"}`, "error");
-      }
-    } catch (err) {
-      notify("Koneksi gagal!", "error");
-    }
-  };
-}
-
-async function loadProductList() {
-  const tbody = document.getElementById("product-list-tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  try {
-    const res = await fetch(`${API_BASE_URL}/products`);
-    if (res.ok) {
-      const products = await res.json();
-      products.forEach((p) => {
-        const itemPrice = p.price ?? p.selling_price ?? 0;
-        const itemCategory = p.category || "Umum";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${p.barcode}</td>
-          <td>${p.name}</td>
-          <td><span style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">${itemCategory}</span></td>
-          <td style="text-align: right;">${formatRupiah(itemPrice)}</td>
-          <td style="text-align: center;">${p.stock}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-  } catch (err) {
-    console.error("Gagal muat list produk", err);
-  }
-}
-
 if (document.getElementById("btn-save-member")) {
   document.getElementById("btn-save-member").onclick = async () => {
     const name = document.getElementById("m-name").value.trim();
@@ -813,8 +756,8 @@ async function loadReports() {
       const data = await res.json();
       const summary = data.summary || data;
 
-      document.getElementById("report-omset").innerText = formatRupiah(summary.total_sales || 0);
-      document.getElementById("report-profit").innerText = formatRupiah(summary.total_profit || 0);
+      if (document.getElementById("report-omset")) document.getElementById("report-omset").innerText = formatRupiah(summary.total_sales || 0);
+      if (document.getElementById("report-profit")) document.getElementById("report-profit").innerText = formatRupiah(summary.total_profit || 0);
 
       renderModalPaymentBreakdown(summary.payment_breakdown || {});
     }
@@ -828,18 +771,12 @@ function renderModalPaymentBreakdown(breakdown) {
   if (!container) return;
 
   const defaultMethods = ["CASH", "QRIS", "DEBIT", "TRANSFER"];
-  const colors = {
-    CASH: "#10b981",
-    QRIS: "#3b82f6",
-    DEBIT: "#f59e0b",
-    TRANSFER: "#8b5cf6",
-  };
-
+  const colors = { CASH: "#10b981", QRIS: "#3b82f6", DEBIT: "#f59e0b", TRANSFER: "#8b5cf6" };
   const allMethods = {};
+
   defaultMethods.forEach((method) => {
     allMethods[method] = breakdown[method] || 0;
   });
-
   Object.keys(breakdown).forEach((method) => {
     if (!allMethods.hasOwnProperty(method)) {
       allMethods[method] = breakdown[method];
@@ -865,17 +802,12 @@ function renderModalPaymentBreakdown(breakdown) {
 // 8. SHORTCUTS KEYBOARD GLOBAL
 // -----------------------------------------------------------------------------
 document.addEventListener("keydown", (e) => {
-  // Tombol F5: Eksekusi Pembayaran
   if (e.key === "F5") {
     e.preventDefault();
     if (btnPayMain) btnPayMain.click();
-  }
-  // Tombol Escape: Menutup semua modal yang sedang terbuka
-  else if (e.key === "Escape") {
-    ["modal-products", "modal-members", "modal-reports", "modal-receipt-settings", "modal-pending", "modal-receipt"].forEach(closeModal);
-  }
-  // Tombol Delete: Hapus baris item keranjang
-  else if (e.key === "Delete") {
+  } else if (e.key === "Escape") {
+    ["modal-members", "modal-receipt-settings", "modal-pending", "modal-receipt", "modal-camera-scanner"].forEach(closeModal);
+  } else if (e.key === "Delete") {
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "SELECT")) return;
     if (btnDeleteItem) btnDeleteItem.click();
@@ -888,7 +820,6 @@ document.addEventListener("keydown", (e) => {
 let cameraStream = null;
 let isScanningActive = false;
 
-// Event listener untuk tombol buka kamera
 document.getElementById("btn-scan-camera")?.addEventListener("click", () => {
   openCameraModal();
 });
@@ -911,18 +842,16 @@ async function startCameraStream() {
 
   try {
     isScanningActive = true;
-    // Meminta izin kamera belakang HP (environment)
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
     });
     videoElement.srcObject = cameraStream;
     videoElement.play();
 
-    // Mulai proses pemindaian frame video
     requestAnimationFrame(scanVideoFrame);
   } catch (error) {
     console.error("Gagal mengakses kamera:", error);
-    showToast("Tidak dapat mengakses kamera HP. Periksa izin browser.", "error");
+    notify("Tidak dapat mengakses kamera HP. Periksa izin browser.", "error");
     closeCameraModal();
   }
 }
@@ -935,13 +864,11 @@ function stopCameraStream() {
   }
 }
 
-// Fungsi pembacaan frame secara berkala
 async function scanVideoFrame() {
   if (!isScanningActive) return;
 
   const videoElement = document.getElementById("camera-video-preview");
 
-  // Jika BarcodeDetector API didukung oleh browser HP
   if ("BarcodeDetector" in window && videoElement && videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
     try {
       const barcodeDetector = new BarcodeDetector({ formats: ["code_128", "ean_13", "ean_8", "upc_a", "qr_code"] });
@@ -951,18 +878,14 @@ async function scanVideoFrame() {
         const detectedCode = barcodes[0].rawValue;
         console.log("Barcode terdeteksi via kamera:", detectedCode);
 
-        // Masukkan hasil scan ke input barcode utama
         const barcodeInput = document.getElementById("barcode-input");
         if (barcodeInput) {
           barcodeInput.value = detectedCode;
-          // Panggil fungsi tambah produk yang sudah ada di aplikasi Anda
-          // Contoh: trigger pencarian atau tekan enter otomatis
           triggerAddProductByBarcode(detectedCode);
         }
 
-        // Tutup modal kamera setelah berhasil mendeteksi
         closeCameraModal();
-        showToast(`Berhasil scan: ${detectedCode}`, "success");
+        notify(`Berhasil scan: ${detectedCode}`, "success");
         return;
       }
     } catch (err) {
@@ -970,83 +893,29 @@ async function scanVideoFrame() {
     }
   }
 
-  // Lanjutkan loop scan jika modal masih aktif
   if (isScanningActive) {
     requestAnimationFrame(scanVideoFrame);
   }
 }
 
-// Fungsi bantu opsional jika sistem Anda membutuhkan trigger otomatis saat barcode masuk
 function triggerAddProductByBarcode(code) {
   const barcodeInput = document.getElementById("barcode-input");
   if (barcodeInput) {
     barcodeInput.value = code;
-    // Simulasi tekan enter atau panggil fungsi add item yang ada di app.js Anda
     const enterEvent = new KeyboardEvent("keypress", { key: "Enter", keyCode: 13, bubbles: true });
     barcodeInput.dispatchEvent(enterEvent);
   }
 }
 
 // ==========================================
-// OPSI ALTERNATIF: SCAN BARCODE VIA FOTO / FILE HP (MENGGUNAKAN ZXING)
+// FITUR CETAK ULANG STRUK (REPRINT RECEIPT)
 // ==========================================
-document.getElementById("barcode-file-input")?.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  showToast("Membaca barcode dari foto...", "info");
-
-  try {
-    const imageUrl = URL.createObjectURL(file);
-    const img = new Image();
-
-    img.onload = async () => {
-      try {
-        // Gunakan ZXing BrowserCodeReader untuk mendeteksi barcode dari objek gambar/canvas
-        const codeReader = new ZXing.BrowserBarcodeReader();
-
-        // Buat elemen canvas sementara untuk memindai
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        // Proses decode gambar
-        const result = await codeReader.decodeFromImageElement(img);
-
-        if (result && result.text) {
-          const detectedCode = result.text;
-          console.log("Barcode berhasil dibaca via ZXing:", detectedCode);
-
-          // Masukkan ke input barcode utama dan proses
-          const barcodeInput = document.getElementById("barcode-input");
-          if (barcodeInput) {
-            barcodeInput.value = detectedCode;
-            triggerAddProductByBarcode(detectedCode);
-          }
-          showToast(`Berhasil scan: ${detectedCode}`, "success");
-        } else {
-          showToast("Barcode tidak ditemukan dalam foto.", "warning");
-        }
-      } catch (err) {
-        console.error("ZXing decode error:", err);
-        showToast("Barcode gagal terbaca. Pastikan foto jelas & tidak buram.", "warning");
-      } finally {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-
-    img.onerror = () => {
-      showToast("Gagal memuat file gambar.", "error");
-      URL.revokeObjectURL(imageUrl);
-    };
-
-    img.src = imageUrl;
-  } catch (err) {
-    console.error("Error proses file:", err);
-    showToast("Terjadi kesalahan saat memproses foto.", "error");
-  } finally {
-    e.target.value = "";
-  }
-});
+if (btnReprint) {
+  btnReprint.addEventListener("click", () => {
+    if (!lastCompletedTransaction) {
+      notify("Belum ada transaksi yang diselesaikan pada sesi ini.", "warning");
+      return;
+    }
+    showReceiptModal(lastCompletedTransaction);
+  });
+}
