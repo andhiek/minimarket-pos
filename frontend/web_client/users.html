@@ -1,274 +1,147 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Manajemen Karyawan - Minimarket POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-      :root {
-        --bg-main: #13111c;
-        --bg-card: #1e1b2e;
-        --bg-table: #1a1728;
-        --border-color: #2d2b42;
-        --text-main: #e2e8f0;
-        --text-muted: #94a3b8;
-        --accent-blue: #38bdf8;
-        --accent-green: #34d399;
-        --accent-red: #f87171;
-        --primary: #6366f1;
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Inter", sans-serif;
-      }
-
-      body {
-        background-color: var(--bg-main);
-        color: var(--text-main);
-        padding: 24px;
-      }
-
-      .header-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-      }
-
-      .header-title {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-      }
-
-      .btn {
-        background-color: var(--primary);
-        color: white;
-        border: none;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: opacity 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.9rem;
-      }
-
-      .btn:hover {
-        opacity: 0.9;
-      }
-
-      .btn-secondary {
-        background-color: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
-      }
-
-      .btn-success {
-        background-color: var(--accent-green);
-        color: #064e3b;
-      }
-
-      .btn-danger {
-        background-color: var(--accent-red);
-        color: #7f1d1d;
-      }
-
-      .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-      }
-
-      .search-input {
-        padding: 10px 14px;
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: var(--text-main);
-        font-size: 0.9rem;
-        width: 300px;
-      }
-
-      .search-input:focus {
-        outline: none;
-        border-color: var(--primary);
-      }
-
-      .card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-      }
-
-      th,
-      td {
-        padding: 14px 20px;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.95rem;
-      }
-
-      th {
-        background-color: var(--bg-table);
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-      }
-
-      tr:hover {
-        background-color: rgba(255, 255, 255, 0.02);
-      }
-
-      .badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-      }
-      .badge-admin {
-        background-color: rgba(56, 189, 248, 0.1);
-        color: var(--accent-blue);
-      }
-      .badge-kasir {
-        background-color: rgba(52, 211, 153, 0.1);
-        color: var(--accent-green);
-      }
-      .badge-active {
-        background-color: rgba(52, 211, 153, 0.15);
-        color: var(--accent-green);
-      }
-      .badge-inactive {
-        background-color: rgba(248, 113, 113, 0.15);
-        color: var(--accent-red);
-      }
-
-      /* Modal Styling */
-      .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-
-      .modal-content {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        padding: 24px;
-        border-radius: 12px;
-        width: 100%;
-        max-width: 480px;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-
-      .form-group {
-        margin-bottom: 16px;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-      }
-
-      input,
-      select,
-      textarea {
-        width: 100%;
-        padding: 10px 14px;
-        background-color: var(--bg-main);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: var(--text-main);
-        font-size: 0.95rem;
-      }
-
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: var(--primary);
-      }
-
-      textarea {
-        resize: vertical;
-        height: 80px;
-      }
-
-      .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 20px;
-      }
-    </style>
+    <!-- CSS Utama -->
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/users.css" />
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="js/auth.js"></script>
   </head>
   <body>
-    <div class="header-container">
-      <div class="header-title">
-        <a href="index.html" class="btn btn-secondary">← Kembali ke POS</a>
-        <h1>👥 Manajemen Karyawan & Kasir</h1>
+    <!-- Top Header Serupa Dashboard / Index.html -->
+    <div class="top-header">
+      <div class="header-left">
+        <a href="index.html" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px">← POS</a>
+        <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Mode">🌙</button>
+        <div class="title-text">MANAJEMEN KARYAWAN</div>
       </div>
-      <button class="btn" onclick="openModal()">+ Tambah Karyawan</button>
+      <div class="header-right">
+        <!-- Profil Wrapper dengan Dropdown Menu Modern -->
+        <div
+          class="user-profile-menu"
+          id="user-profile-menu"
+          style="position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1)">
+          <!-- Avatar / Inisial Profil -->
+          <div
+            style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #059669); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px"
+            id="user-avatar">
+            A
+          </div>
+          <div style="display: flex; flex-direction: column; text-align: left">
+            <span id="current-user-name" style="font-size: 13px; font-weight: 600; color: #fff">Administrator</span>
+            <span id="current-user-role" style="font-size: 10px; color: var(--text-muted); font-weight: 500">ADMIN</span>
+          </div>
+          <span style="font-size: 10px; margin-left: 5px; color: var(--text-muted)">▼</span>
+
+          <!-- Menu Pop-up / Dropdown Navigasi Modern -->
+          <div
+            id="profile-dropdown-content"
+            style="
+              display: none;
+              position: absolute;
+              top: 50px;
+              right: 0;
+              background: var(--bg-card, #1e1e2d);
+              border: 1px solid rgba(255, 255, 255, 0.15);
+              border-radius: 12px;
+              width: 240px;
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+              z-index: 1000;
+              overflow: hidden;
+              padding: 6px;
+            ">
+            <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 4px">
+              <div style="font-size: 11px; color: var(--text-muted)">Masuk sebagai:</div>
+              <div style="font-size: 13px; font-weight: bold; color: #fff" id="dropdown-username-info">Administrator</div>
+            </div>
+
+            <!-- Menu Navigasi -->
+            <a
+              href="products.html"
+              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
+              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
+              onmouseout="this.style.background = 'transparent'"
+              >📊 Kelola Produk</a
+            >
+
+            <a
+              href="index.html"
+              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
+              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
+              onmouseout="this.style.background = 'transparent'"
+              >🛒 Halaman Kasir (POS)</a
+            >
+
+            <a
+              href="reports.html"
+              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
+              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
+              onmouseout="this.style.background = 'transparent'"
+              >📈 Laporan Harian / Laba</a
+            >
+
+            <a
+              href="users.html"
+              id="menu-dropdown-users"
+              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; background: rgba(255, 255, 255, 0.05)"
+              >🛡️ Manajemen Karyawan</a
+            >
+
+            <div style="height: 1px; background: rgba(255, 255, 255, 0.08); margin: 4px 0"></div>
+
+            <!-- Tombol Switch User / Logout -->
+            <a
+              href="#"
+              id="btn-dropdown-logout"
+              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #eae9ec; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
+              onmouseover="this.style.background = 'rgba(239,68,68,0.1)'"
+              onmouseout="this.style.background = 'transparent'"
+              >🔒 Switch User / Logout</a
+            >
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="toolbar">
-      <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan NIK atau Nama..." onkeyup="filterUsers()" />
+    <!-- Konten Utama Manajemen Karyawan -->
+    <div style="padding: 20px">
+      <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+        <h1 style="font-size: 1.4rem; color: #fff; margin: 0">👥 Manajemen Karyawan & Kasir</h1>
+        <button class="btn" onclick="openModal()">+ Tambah Karyawan</button>
+      </div>
+
+      <div class="toolbar" style="margin-bottom: 15px">
+        <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan NIK atau Nama..." onkeyup="filterUsers()" style="width: 100%; padding: 10px; border-radius: 8px" />
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>No. Induk Karyawan</th>
+              <th>Nama Lengkap</th>
+              <th>Kontak (No. HP)</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <!-- Data akan dimuat melalui JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card">
-      <table>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>No. Induk Karyawan</th>
-            <th>Nama Lengkap</th>
-            <th>Kontak (No. HP)</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <!-- Data akan dimuat melalui JavaScript -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal Tambah Karyawan -->
+    <!-- Modal Tambah/Edit Karyawan -->
     <div id="userModal" class="modal">
       <div class="modal-content">
-        <h2 style="margin-bottom: 16px; font-size: 1.2rem">Tambah Karyawan Baru</h2>
+        <h2 id="modalTitle" style="margin-bottom: 16px; font-size: 1.2rem">Tambah Karyawan Baru</h2>
         <form id="userForm" onsubmit="saveUser(event)">
           <div class="form-group">
             <label>Nomor Induk Karyawan (NIK)</label>
@@ -279,16 +152,20 @@
             <input type="text" id="full_name" required autocomplete="off" placeholder="Nama lengkap karyawan" />
           </div>
           <div class="form-group">
+            <label>Username untuk Login</label>
+            <input type="text" id="username" required autocomplete="off" placeholder="Contoh: bayoe" />
+          </div>
+          <div class="form-group">
+            <label>Password Login <small style="color: var(--text-muted); font-weight: normal">(Kosongkan jika tidak ingin mengubah saat edit)</small></label>
+            <input type="password" id="password" autocomplete="new-password" placeholder="Masukkan password kasir" />
+          </div>
+          <div class="form-group">
             <label>Nomor HP / WhatsApp</label>
             <input type="tel" id="phone" autocomplete="off" placeholder="Contoh: 081234567890" />
           </div>
           <div class="form-group">
             <label>Alamat Lengkap</label>
             <textarea id="address" autocomplete="off" placeholder="Alamat domisili karyawan..."></textarea>
-          </div>
-          <div class="form-group">
-            <label>PIN Kasir (4-6 Digit untuk Login Cepat)</label>
-            <input type="password" id="pin" maxlength="6" required autocomplete="new-password" placeholder="1234" />
           </div>
           <div class="form-group">
             <label>Role / Hak Akses</label>
@@ -305,130 +182,51 @@
       </div>
     </div>
 
+    <!-- Script Pendukung Dropdown Header (Sama seperti di app.js utama) -->
     <script>
-      const API_URL = "http://localhost:8000";
-      let allUsers = [];
+      document.addEventListener("DOMContentLoaded", () => {
+        // Dropdown Toggle
+        const profileMenu = document.getElementById("user-profile-menu");
+        const dropdownContent = document.getElementById("profile-dropdown-content");
 
-      async function fetchUsers() {
-        try {
-          const response = await fetch(`${API_URL}/api/users`);
-          allUsers = await response.json();
-          renderTable(allUsers);
-        } catch (error) {
-          console.error("Gagal memuat data pengguna:", error);
-        }
-      }
-
-      function renderTable(users) {
-        const tbody = document.getElementById("userTableBody");
-        tbody.innerHTML = "";
-
-        if (users.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Tidak ada data karyawan ditemukan.</td></tr>`;
-          return;
-        }
-
-        users.forEach((user, index) => {
-          const row = document.createElement("tr");
-
-          const roleBadge = user.role === "ADMIN" ? "badge-admin" : "badge-kasir";
-          const statusBadge = user.is_active ? "badge-active" : "badge-inactive";
-          const statusText = user.is_active ? "Aktif" : "Non-Aktif";
-          const toggleBtnText = user.is_active ? "Nonaktifkan" : "Aktifkan";
-          const toggleBtnClass = user.is_active ? "btn-danger" : "btn-success";
-          const phoneText = user.phone || "-";
-
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td><strong>${user.nik || "-"}</strong></td>
-            <td>${user.full_name}</td>
-            <td>${phoneText}</td>
-            <td><span class="badge ${roleBadge}">${user.role}</span></td>
-            <td><span class="badge ${statusBadge}">${statusText}</span></td>
-            <td>
-                <button class="btn ${toggleBtnClass}" style="padding: 6px 12px; font-size: 0.8rem;" onclick="toggleStatus(${user.id})">
-                    ${toggleBtnText}
-                </button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
-      }
-
-      function filterUsers() {
-        const keyword = document.getElementById("searchInput").value.toLowerCase();
-        const filtered = allUsers.filter((user) => (user.nik && user.nik.toLowerCase().includes(keyword)) || (user.full_name && user.full_name.toLowerCase().includes(keyword)));
-        renderTable(filtered);
-      }
-
-      function openModal() {
-        document.getElementById("userModal").style.display = "flex";
-      }
-
-      function closeModal() {
-        document.getElementById("userModal").style.display = "none";
-        document.getElementById("userForm").reset();
-      }
-
-      async function saveUser(event) {
-        event.preventDefault();
-
-        const nikVal = document.getElementById("nik").value.trim();
-        const pinVal = document.getElementById("pin").value.trim();
-
-        const data = {
-          nik: nikVal,
-          full_name: document.getElementById("full_name").value,
-          phone: document.getElementById("phone").value,
-          address: document.getElementById("address").value,
-          username: "emp_" + nikVal,
-          password: "pwd_" + pinVal,
-          pin: pinVal,
-          role: document.getElementById("role").value,
-        };
-
-        try {
-          const response = await fetch(`${API_URL}/api/users`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+        if (profileMenu && dropdownContent) {
+          profileMenu.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
           });
 
-          const result = await response.json();
-          if (response.ok) {
-            alert(result.message || "Karyawan baru berhasil ditambahkan!");
-            closeModal();
-            fetchUsers();
-          } else {
-            alert(result.detail || "Gagal menambahkan karyawan.");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("Terjadi kesalahan koneksi ke server.");
-        }
-      }
-
-      async function toggleStatus(userId) {
-        if (!confirm("Apakah Anda yakin ingin mengubah status aktif karyawan ini?")) return;
-
-        try {
-          const response = await fetch(`${API_URL}/api/users/${userId}/toggle-status`, {
-            method: "PATCH",
+          document.addEventListener("click", () => {
+            dropdownContent.style.display = "none";
           });
-          const result = await response.json();
-          if (response.ok) {
-            alert(result.message || "Status berhasil diubah.");
-            fetchUsers();
-          } else {
-            alert(result.detail || "Gagal mengubah status.");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("Terjadi kesalahan koneksi ke server.");
         }
-      }
 
-      window.onload = fetchUsers;
+        // Tampilkan info user yang aktif dari localStorage
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        if (currentUser) {
+          if (document.getElementById("current-user-name")) document.getElementById("current-user-name").innerText = currentUser.full_name || currentUser.username;
+          if (document.getElementById("current-user-role")) document.getElementById("current-user-role").innerText = currentUser.role;
+          if (document.getElementById("dropdown-username-info")) document.getElementById("dropdown-username-info").innerText = currentUser.full_name || currentUser.username;
+          if (document.getElementById("user-avatar")) {
+            const name = currentUser.full_name || currentUser.username || "A";
+            document.getElementById("user-avatar").innerText = name.charAt(0).toUpperCase();
+          }
+        }
+
+        // Tombol Logout
+        const logoutBtn = document.getElementById("btn-dropdown-logout");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (confirm("Apakah anda yakin ingin keluar / switch user?")) {
+              localStorage.removeItem("currentUser");
+              window.location.href = "login.html";
+            }
+          });
+        }
+      });
     </script>
+
+    <!-- Penghubung ke JavaScript Karyawan -->
+    <script src="js/users.js"></script>
   </body>
 </html>

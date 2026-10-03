@@ -165,38 +165,44 @@ class LoginRequest(BaseModel):
 
 @app.post("/api/auth/login", tags=["Auth"])
 def login(req: LoginRequest, session: Session = Depends(get_db)):
+    input_user = str(req.username).strip() if req.username else ""
+    input_pass = str(req.password).strip() if req.password else ""
+    input_nik = str(req.nik).strip() if req.nik else ""
+    input_pin = str(req.pin).strip() if req.pin else ""
+
     user = None
 
-    # 1. Login via NIK + PIN (Biasanya untuk Kasir)
-    if req.nik and req.pin:
-        user = session.exec(
-            select(User).where(User.nik == req.nik)
-        ).first()
-        
-        if not user or user.pin != req.pin:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="NIK atau PIN salah!",
-            )
+    # 1. Login via NIK + PIN
+    if input_nik and input_pin:
+        user = session.exec(select(User).where(User.nik == input_nik)).first()
+        if not user or user.pin != input_pin:
+            user = None
 
-    # 2. Login via Username + Password (Biasanya untuk Admin/Kasir umum)
-    elif req.username and req.password:
+    # 2. Login via Username + Password
+    elif input_user and input_pass:
         user = session.exec(
-            select(User).where(User.username == req.username)
+            select(User).where(
+                (User.username == input_user) | 
+                (User.nik == input_user)
+            )
         ).first()
 
-        # Fallback pengecekan password_hash ataupun password biasa jika ada data lama
-        target_hash = getattr(user, "password_hash", None) or getattr(user, "password", None)
-        
-        if not user or not target_hash or not verify_password(req.password, target_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Username atau password salah!",
+        if user:
+            target_hash = getattr(user, "password_hash", None) or getattr(user, "password", None)
+            
+            # Verifikasi password hash atau kecocokan pin
+            is_valid = (
+                (target_hash and verify_password(input_pass, target_hash)) or
+                (user.pin and user.pin == input_pass)
             )
-    else:
+            
+            if not is_valid:
+                user = None
+
+    if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Harap masukkan (Username & Password) atau (NIK & PIN)!",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Username/NIK atau Password/PIN salah!",
         )
 
     if not user.is_active:
@@ -211,8 +217,8 @@ def login(req: LoginRequest, session: Session = Depends(get_db)):
         "full_name": user.full_name,
         "role": user.role,
     }
-
-
+    
+    
 @app.get("/", include_in_schema=False)
 def root():
     return {"status": "Online", "message": "Minimarket POS REST API Engine Running."}
@@ -225,10 +231,9 @@ class UserCreateRequest(BaseModel):
     nik: str = Field(..., description="NIK unik karyawan/kasir")
     username: str = Field(..., description="Username login")
     password: str = Field(..., description="Password akun")
-    pin: str = Field(..., min_length=4, max_length=6, description="PIN 4-6 digit")
+    pin: Optional[str] = Field(default=None, description="PIN kasir opsional")
     full_name: str = Field(..., description="Nama lengkap karyawan")
     role: str = Field(default="KASIR", description="ADMIN atau KASIR")
-
 
 @app.get("/api/users", tags=["Users"])
 def get_all_users(session: Session = Depends(get_db)):
@@ -264,9 +269,9 @@ def create_user(req: UserCreateRequest, session: Session = Depends(get_db)):
 
     new_user = User(
         nik=req.nik,
-        username=req.username,
+        username=req.username.strip(),
         password_hash=hashed_pwd,
-        pin=req.pin,
+        pin=req.pin or req.password, # Cadangan pin jika diperlukan
         full_name=req.full_name,
         role=req.role.upper(),
         is_active=True
@@ -286,7 +291,8 @@ def create_user(req: UserCreateRequest, session: Session = Depends(get_db)):
             "role": new_user.role
         }
     }
-
+    
+    
 
 @app.patch("/api/users/{user_id}/toggle-status", tags=["Users"])
 def toggle_user_status(user_id: int, session: Session = Depends(get_db)):
@@ -301,6 +307,72 @@ def toggle_user_status(user_id: int, session: Session = Depends(get_db)):
     
     status_msg = "diaktifkan" if user.is_active else "dinonaktifkan"
     return {"message": f"Akun {user.full_name} berhasil {status_msg}.", "is_active": user.is_active}
+
+
+
+# Skema Request untuk Update User
+class UserUpdateRequest(BaseModel):
+    nik: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    role: Optional[str] = None
+
+@app.put("/api/users/{user_id}", tags=["Users"])
+def update_user(user_id: int, req: UserUpdateRequest, session: Session = Depends(get_db)):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan!")
+
+    # Cek duplikasi NIK jika diubah
+    if req.nik and req.nik != user.nik:
+        existing_nik = session.exec(select(User).where(User.nik == req.nik)).first()
+        if existing_nik:
+            raise HTTPException(status_code=400, detail="NIK tersebut sudah digunakan karyawan lain!")
+        user.nik = req.nik
+
+    # Cek duplikasi Username jika diubah
+    if req.username and req.username != user.username:
+        existing_username = session.exec(select(User).where(User.username == req.username)).first()
+        if existing_username:
+            raise HTTPException(status_code=400, detail="Username tersebut sudah digunakan!")
+        user.username = req.username.strip()
+
+    if req.full_name:
+        user.full_name = req.full_name
+    if req.phone is not None:
+        user.phone = req.phone
+    if req.address is not None:
+        user.address = req.address
+    if req.role:
+        user.role = req.role.upper()
+
+    # Update password hanya jika diisi password baru
+    if req.password and req.password.strip() != "":
+        user.password_hash = hash_password(req.password)
+        user.pin = req.password
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return {"message": f"Data karyawan {user.full_name} berhasil diperbarui!"}
+@app.delete("/api/users/{user_id}", tags=["Users"])
+def delete_user(user_id: int, session: Session = Depends(get_db)):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan!")
+    
+    # Jangan hapus user admin utama jika diperlukan, atau berikan proteksi
+    if user.username == "admin":
+        raise HTTPException(status_code=400, detail="Akun Administrator utama tidak dapat dihapus!")
+
+    session.delete(user)
+    session.commit()
+
+    return {"message": f"Karyawan {user.full_name} berhasil dihapus dari sistem."}
 
 
 # ==============================================================================
