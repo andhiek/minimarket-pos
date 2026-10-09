@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    container_name: minimarket-pos-app
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - TZ=Asia/Jakarta
