@@ -1,23 +1,24 @@
-/* Styling Laporan Penjualan - Excel/Spreadsheet Theme */
+/* Styling Laporan Penjualan - Excel/Spreadsheet Theme (Optimized for Comfort & Readability) */
 
 :root {
-  --bg-dark: #121212;
-  --bg-card: #1e1e1e;
-  --bg-input: #2a2a2a;
-  --border-grid: #333333;
-  --text-main: #e0e0e0;
-  --text-muted: #888888;
-  --accent-blue: #0d6efd;
-  --accent-green: #2ec4b6;
-  --accent-purple: #8a2be2;
-  --excel-header-bg: #22252a;
-  --excel-hover-row: #2a2d34;
+  --bg-dark: #0f111a;
+  --bg-card: #181b28;
+  --bg-input: #222638;
+  --border-grid: #2a2f45;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-purple: #8b5cf6;
+  --excel-header-bg: #1e2336;
+  --excel-hover-row: #22283f;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* Mengunci tinggi halaman agar pas satu layar penuh tanpa kosong di bawah */
 body {
   margin: 0;
   padding: 0;
@@ -32,9 +33,21 @@ body {
 
 /* Top Navigation Bar */
 .top-header {
-  background: #181818;
-  border-bottom: 1px solid var(--border-grid);
-  padding: 10px 20px;
+  background: var(--bg-card);
+  /* border-bottom: 1px solid var(--border-grid); */
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Top Navigation Bar - Disesuaikan agar sama persis dengan Stock Product */
+.top-header {
+  background: var(--bg-card);
+  /* border-bottom: 1px solid var(--border-grid); */
+  padding: 14px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -42,7 +55,7 @@ body {
 }
 
 .top-header .brand-title {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #fff;
   display: flex;
@@ -52,7 +65,7 @@ body {
 
 nav.main-nav {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 nav.main-nav a {
@@ -63,48 +76,74 @@ nav.main-nav a {
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.2s;
+  background: transparent;
+  border: none;
 }
 
-nav.main-nav a:hover,
-nav.main-nav a.active {
+nav.main-nav a:hover {
   background: var(--bg-input);
   color: #fff;
 }
 
-/* Main Container (Full Height) */
+nav.main-nav a.active {
+  background: var(--accent-blue);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Mengatur wrapper utama agar sangat padat dan efisien memanfaatkan layar */
 .main-wrapper {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px 20px;
-  gap: 16px;
+  padding: 8px 16px;
+  gap: 8px; /* Mengurangi jarak vertikal antar elemen secara drastis */
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
   overflow: hidden;
 }
 
-/* Control Toolbar & Filter (Excel Ribbon Style) */
+/* Memperkecil padding toolbar agar lebih ringkas */
 .toolbar-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-grid);
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.filter-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.action-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .toolbar-panel label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .toolbar-panel select,
@@ -112,38 +151,45 @@ nav.main-nav a.active {
   background: var(--bg-input);
   border: 1px solid var(--border-grid);
   color: #fff;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 4px;
   font-size: 0.85rem;
   outline: none;
 }
 
-.toolbar-panel select:focus,
-.toolbar-panel input:focus {
-  border-color: var(--accent-blue);
-}
-
+/* Tombol Excel disamakan ukurannya dengan halaman produk */
 .btn-excel {
-  background: var(--accent-blue);
-  color: #fff;
-  border: none;
-  padding: 7px 16px;
-  border-radius: 4px;
+  padding: 6px 14px;
   font-size: 0.85rem;
+  border-radius: 4px;
   font-weight: 600;
+  border: none;
   cursor: pointer;
-  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btn-excel:hover {
-  background: #0b5ed7;
+.btn-primary-action {
+  background: var(--accent-purple);
+  color: #fff;
 }
 
-/* KPI Scorecards Bar */
+.btn-secondary-action {
+  background: #2b3035;
+  border: 1px solid var(--border-grid);
+  color: #fff;
+}
+
+.btn-success-action {
+  background: #198754;
+  color: #fff;
+}
+/* Kartu KPI Utama */
 .kpi-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -151,7 +197,7 @@ nav.main-nav a.active {
   background: var(--bg-card);
   border: 1px solid var(--border-grid);
   border-radius: 6px;
-  padding: 12px 18px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -165,7 +211,7 @@ nav.main-nav a.active {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 5px;
   background: var(--accent-blue);
 }
 
@@ -181,29 +227,48 @@ nav.main-nav a.active {
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
 }
 
 .kpi-value {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
 }
 
-/* Excel Grid Table Area */
+/* Payment Breakdown Section */
+/* Bagian Breakdown Pembayaran dibuat rapat dan sejajar */
+#payment-breakdown-container {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+#payment-breakdown-container > div {
+  flex: 1;
+  padding: 8px 12px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Mengatur area tabel agar fleksibel memenuhi sisa layar ke bawah */
+/* Area Tabel Laporan ditarik ke atas dan memaksimalkan sisa ruang ke bawah */
 .excel-grid-container {
   flex: 1;
   background: var(--bg-card);
   border: 1px solid var(--border-grid);
   border-radius: 6px;
   overflow: auto;
+  min-height: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .excel-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   text-align: left;
   white-space: nowrap;
 }
@@ -213,8 +278,8 @@ nav.main-nav a.active {
   top: 0;
   background: var(--excel-header-bg);
   color: var(--text-muted);
-  font-weight: 600;
-  padding: 10px 14px;
+  font-weight: 700;
+  padding: 10px 14px; /* Memperkecil tinggi header tabel agar lebih compact */
   border-bottom: 2px solid var(--border-grid);
   border-right: 1px solid var(--border-grid);
   text-transform: uppercase;
@@ -223,7 +288,7 @@ nav.main-nav a.active {
 }
 
 .excel-table td {
-  padding: 9px 14px;
+  padding: 8px 14px; /* Memperkecil padding baris agar data muat lebih banyak */
   border-bottom: 1px solid var(--border-grid);
   border-right: 1px solid var(--border-grid);
   color: var(--text-main);
@@ -245,245 +310,101 @@ nav.main-nav a.active {
   text-align: center;
 }
 
-.badge-payment {
-  background: var(--bg-input);
-  border: 1px solid var(--border-grid);
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Update Toolbar Panel untuk menampung tombol Import/Export */
-.toolbar-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border-grid);
+/* Tombol Detail & Modal */
+.btn-detail {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 6px 12px;
   border-radius: 6px;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+.btn-detail:hover {
+  filter: brightness(1.1);
 }
 
-.filter-controls,
-.action-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* Variasi Warna Tombol Excel */
-.btn-primary-action {
-  background: #6f42c1;
-  color: #fff;
-}
-.btn-primary-action:hover {
-  background: #59359a;
-}
-
-.btn-secondary-action {
-  background: #2b3035;
-  border: 1px solid var(--border-grid);
-  color: #fff;
-}
-.btn-secondary-action:hover {
-  background: #3b4046;
-}
-
-.btn-success-action {
-  background: #198754;
-  color: #fff;
-}
-.btn-success-action:hover {
-  background: #146c43;
-}
-
-/* Modal Overlay & Card */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 .modal-content {
-  background: #1e2230;
+  background: var(--bg-card);
   color: #fff;
-  border-radius: 8px;
+  border: 1px solid var(--border-grid);
+  border-radius: 14px;
   width: 90%;
-  max-width: 500px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  max-width: 550px;
+  padding: 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
 }
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #2e3446;
-  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-grid);
+  padding-bottom: 12px;
 }
 .btn-close {
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--text-muted);
   font-size: 24px;
   cursor: pointer;
+  transition: color 0.2s;
+}
+.btn-close:hover {
+  color: #fff;
 }
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 15px;
-  font-size: 14px;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 0.9rem;
 }
 .modal-divider {
   border: 0;
-  border-top: 1px solid #2e3446;
-  margin: 15px 0;
+  border-top: 1px solid var(--border-grid);
+  margin: 18px 0;
 }
 .detail-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 0.9rem;
 }
 .detail-table th,
 .detail-table td {
-  padding: 8px;
+  padding: 10px;
   text-align: left;
+  border-bottom: 1px solid var(--border-grid);
 }
 .summary-details {
   display: flex;
   justify-content: flex-end;
-  font-size: 16px;
+  font-size: 1.05rem;
 }
 .modal-footer {
-  margin-top: 20px;
+  margin-top: 24px;
   text-align: right;
 }
-.btn-detail {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
+.modal-footer .btn-secondary {
+  background: var(--bg-input);
+  color: #fff;
+  border: 1px solid var(--border-grid);
+  padding: 8px 18px;
+  border-radius: 8px;
   cursor: pointer;
-}
-.btn-detail:hover {
-  background: #2563eb;
-}
-
-/* =========================================================
-   RESPONSIVE DESIGN & MOBILE OPTIMIZATION (Tablet & HP)
-   ========================================================= */
-
-/* Touch-friendly target size */
-button,
-.nav-tab-item,
-input,
-select {
-  min-height: 38px;
-}
-
-/* 1. Laptop / Tablet Landscape (<= 1024px) */
-@media screen and (max-width: 1024px) {
-  .header-bar {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-}
-
-/* 2. Tablet Portrait & HP Layar Lebar (<= 768px) */
-@media screen and (max-width: 768px) {
-  body {
-    padding: 10px;
-  }
-
-  .header-bar h2 {
-    font-size: 1.1rem;
-  }
-
-  .nav-tabs {
-    width: 100%;
-    justify-content: space-between;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
-  .nav-tab-item {
-    padding: 8px 12px;
-    font-size: 12px;
-    text-align: center;
-    flex: 1;
-    white-space: nowrap;
-  }
-
-  /* Mengubah layout utama kasir menjadi menumpuk rapi ke bawah */
-  .pos-container,
-  .main-container,
-  .content-wrapper {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    gap: 15px !important;
-  }
-
-  /* Memastikan panel kiri dan kanan mengambil lebar 100% */
-  .left-panel,
-  .right-panel,
-  .cart-section,
-  .payment-section {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* KPI Card Laporan Keuangan di Mobile */
-  .kpi-container {
-    flex-direction: column !important;
-  }
-
-  #payment-breakdown-container {
-    flex-wrap: wrap !important;
-  }
-
-  #payment-breakdown-container > div {
-    flex: 1 1 calc(50% - 12px) !important;
-  }
-}
-
-/* 3. Smartphone / HP Layar Kecil (<= 480px) */
-@media screen and (max-width: 480px) {
-  .search-input {
-    width: 100% !important;
-  }
-
-  .top-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .left-controls,
-  .right-controls {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .btn-top {
-    width: 100%;
-    justify-content: center;
-  }
-
-  #payment-breakdown-container > div {
-    flex: 1 1 100% !important;
-  }
+  font-weight: 600;
 }

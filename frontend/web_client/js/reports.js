@@ -29,10 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const dd = String(today.getDate()).padStart(2, "0");
 
-  if (datePicker) datePicker.value = `${yyyy}-${mm}-${dd}`;
-  if (monthPicker) monthPicker.value = `${yyyy}-${mm}`;
+  if (datePicker && !datePicker.value) datePicker.value = `${yyyy}-${mm}-${dd}`;
+  if (monthPicker && !monthPicker.value) monthPicker.value = `${yyyy}-${mm}`;
 
-  // Switch filter Harian / Bulanan
+  // Switch filter Harian / Bulanan & Auto-Load
   if (reportTypeSelect) {
     reportTypeSelect.addEventListener("change", () => {
       if (reportTypeSelect.value === "daily") {
@@ -42,6 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dailyFilter) dailyFilter.style.display = "none";
         if (monthlyFilter) monthlyFilter.style.display = "flex";
       }
+      loadReportData(); // Auto-load saat jenis filter diganti
+    });
+  }
+
+  // Auto-load saat tanggal harian diubah
+  if (datePicker) {
+    datePicker.addEventListener("change", () => {
+      loadReportData();
+    });
+  }
+
+  // Auto-load saat bulan diubah
+  if (monthPicker) {
+    monthPicker.addEventListener("change", () => {
+      loadReportData();
     });
   }
 
@@ -161,7 +176,15 @@ function renderReportTable(list) {
   if (!tbody) return;
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding: 30px; color: #888;">Tidak ada data transaksi.</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center" style="padding: 40px; color: var(--text-muted);">
+          <div style="font-size: 1.5rem; margin-bottom: 8px;">📂</div>
+          <div style="font-size: 0.9rem; font-weight: 500;">Tidak ada data transaksi untuk periode ini.</div>
+          <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">Silakan pilih bulan atau tanggal lain melalui panel di atas.</div>
+        </td>
+      </tr>
+    `;
     return;
   }
 

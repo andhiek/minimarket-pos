@@ -6,133 +6,123 @@
     <title>Manajemen Karyawan - Minimarket POS</title>
     <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/product.css" />
     <link rel="stylesheet" href="css/users.css" />
     <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="js/auth.js"></script>
+    <style>
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: #1e1e2e;
+        border: 1px solid #313244;
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+      }
+      .stat-title {
+        font-size: 0.8rem;
+        color: #a6adc8;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #cdd6f4;
+      }
+      .toolbar-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .search-box-wrapper {
+        position: relative;
+        flex: 1;
+      }
+      .search-box-wrapper input {
+        width: 100%;
+        padding: 10px 14px 10px 38px;
+        background: #1e1e2e;
+        border: 1px solid #313244;
+        border-radius: 8px;
+        color: #cdd6f4;
+        font-size: 0.9rem;
+      }
+      .search-box-wrapper i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c7086;
+      }
+    </style>
   </head>
   <body>
-    <!-- Top Header Serupa Dashboard / Index.html -->
-    <div class="top-header">
-      <div class="header-left">
-        <a href="index.html" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px">← POS</a>
-        <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Mode">🌙</button>
-        <div class="title-text">MANAJEMEN KARYAWAN</div>
-      </div>
-      <div class="header-right">
-        <!-- Profil Wrapper dengan Dropdown Menu Modern -->
-        <div
-          class="user-profile-menu"
-          id="user-profile-menu"
-          style="position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1)">
-          <!-- Avatar / Inisial Profil -->
-          <div
-            style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #059669); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px"
-            id="user-avatar">
-            A
-          </div>
-          <div style="display: flex; flex-direction: column; text-align: left">
-            <span id="current-user-name" style="font-size: 13px; font-weight: 600; color: #fff">Administrator</span>
-            <span id="current-user-role" style="font-size: 10px; color: var(--text-muted); font-weight: 500">ADMIN</span>
-          </div>
-          <span style="font-size: 10px; margin-left: 5px; color: var(--text-muted)">▼</span>
-
-          <!-- Menu Pop-up / Dropdown Navigasi Modern -->
-          <div
-            id="profile-dropdown-content"
-            style="
-              display: none;
-              position: absolute;
-              top: 50px;
-              right: 0;
-              background: var(--bg-card, #1e1e2d);
-              border: 1px solid rgba(255, 255, 255, 0.15);
-              border-radius: 12px;
-              width: 240px;
-              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-              z-index: 1000;
-              overflow: hidden;
-              padding: 6px;
-            ">
-            <div style="padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 4px">
-              <div style="font-size: 11px; color: var(--text-muted)">Masuk sebagai:</div>
-              <div style="font-size: 13px; font-weight: bold; color: #fff" id="dropdown-username-info">Administrator</div>
-            </div>
-
-            <!-- Menu Navigasi -->
-            <a
-              href="products.html"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
-              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
-              onmouseout="this.style.background = 'transparent'"
-              >📊 Kelola Produk</a
-            >
-
-            <a
-              href="index.html"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
-              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
-              onmouseout="this.style.background = 'transparent'"
-              >🛒 Halaman Kasir (POS)</a
-            >
-
-            <a
-              href="reports.html"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
-              onmouseover="this.style.background = 'rgba(255,255,255,0.08)'"
-              onmouseout="this.style.background = 'transparent'"
-              >📈 Laporan Harian / Laba</a
-            >
-
-            <a
-              href="users.html"
-              id="menu-dropdown-users"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff; text-decoration: none; font-size: 13px; border-radius: 6px; background: rgba(255, 255, 255, 0.05)"
-              >🛡️ Manajemen Karyawan</a
-            >
-
-            <div style="height: 1px; background: rgba(255, 255, 255, 0.08); margin: 4px 0"></div>
-
-            <!-- Tombol Switch User / Logout -->
-            <a
-              href="#"
-              id="btn-dropdown-logout"
-              style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #eae9ec; text-decoration: none; font-size: 13px; border-radius: 6px; transition: background 0.2s"
-              onmouseover="this.style.background = 'rgba(239,68,68,0.1)'"
-              onmouseout="this.style.background = 'transparent'"
-              >🔒 Switch User / Logout</a
-            >
-          </div>
-        </div>
+    <!-- Header Bar Universal -->
+    <div class="header-bar">
+      <h2>👥 Manajemen Karyawan & Kasir</h2>
+      <div class="nav-tabs">
+        <a href="index.html" class="nav-tab-item">Kasir</a>
+        <a href="products.html" class="nav-tab-item">Kelola Produk</a>
+        <a href="reports.html" class="nav-tab-item" id="nav-reports">Laporan</a>
+        <a href="users.html" class="nav-tab-item active" id="nav-users">Karyawan</a>
       </div>
     </div>
 
-    <!-- Konten Utama Manajemen Karyawan -->
-    <div style="padding: 20px">
-      <div class="header-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
-        <h1 style="font-size: 1.4rem; color: #fff; margin: 0">👥 Manajemen Karyawan & Kasir</h1>
-        <button class="btn" onclick="openModal()">+ Tambah Karyawan</button>
+    <!-- Konten Utama -->
+    <div style="padding: 24px">
+      <!-- Kartu Statistik Ringkasan -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-title">Total Karyawan</span>
+          <span class="stat-value" id="stat-total">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">Administrator</span>
+          <span class="stat-value" id="stat-admin" style="color: #89b4fa">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">Kasir Aktif</span>
+          <span class="stat-value" id="stat-kasir" style="color: #a6e3a1">0</span>
+        </div>
       </div>
 
-      <div class="toolbar" style="margin-bottom: 15px">
-        <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan NIK atau Nama..." onkeyup="filterUsers()" style="width: 100%; padding: 10px; border-radius: 8px" />
+      <!-- Toolbar Pencarian & Tombol Tambah yang Rapi (Filter role dihapus) -->
+      <div class="toolbar-flex">
+        <div class="search-box-wrapper">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Cari berdasarkan NIK, Nama, atau Username..." onkeyup="filterUsers()" />
+        </div>
+
+        <button class="btn" onclick="openModal()" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; white-space: nowrap"><i class="fa-solid fa-user-plus"></i> Tambah Karyawan</button>
       </div>
 
+      <!-- Tabel Data Karyawan -->
       <div class="card">
         <table>
           <thead>
             <tr>
-              <th>No</th>
-              <th>No. Induk Karyawan</th>
+              <th style="width: 50px; text-align: center">No</th>
+              <th style="width: 140px">NIK</th>
               <th>Nama Lengkap</th>
-              <th>Kontak (No. HP)</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Aksi</th>
+              <th style="width: 130px">Username</th>
+              <th style="width: 140px">Kontak (No. HP)</th>
+              <th style="width: 100px; text-align: center">Role</th>
+              <th style="width: 100px; text-align: center">Status</th>
+              <th style="width: 80px; text-align: center">Aksi</th>
             </tr>
           </thead>
           <tbody id="userTableBody">
-            <!-- Data akan dimuat melalui JavaScript -->
+            <!-- Data dirender dinamis via JavaScript -->
           </tbody>
         </table>
       </div>
@@ -182,51 +172,7 @@
       </div>
     </div>
 
-    <!-- Script Pendukung Dropdown Header (Sama seperti di app.js utama) -->
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Dropdown Toggle
-        const profileMenu = document.getElementById("user-profile-menu");
-        const dropdownContent = document.getElementById("profile-dropdown-content");
-
-        if (profileMenu && dropdownContent) {
-          profileMenu.addEventListener("click", (e) => {
-            e.stopPropagation();
-            dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
-          });
-
-          document.addEventListener("click", () => {
-            dropdownContent.style.display = "none";
-          });
-        }
-
-        // Tampilkan info user yang aktif dari localStorage
-        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-        if (currentUser) {
-          if (document.getElementById("current-user-name")) document.getElementById("current-user-name").innerText = currentUser.full_name || currentUser.username;
-          if (document.getElementById("current-user-role")) document.getElementById("current-user-role").innerText = currentUser.role;
-          if (document.getElementById("dropdown-username-info")) document.getElementById("dropdown-username-info").innerText = currentUser.full_name || currentUser.username;
-          if (document.getElementById("user-avatar")) {
-            const name = currentUser.full_name || currentUser.username || "A";
-            document.getElementById("user-avatar").innerText = name.charAt(0).toUpperCase();
-          }
-        }
-
-        // Tombol Logout
-        const logoutBtn = document.getElementById("btn-dropdown-logout");
-        if (logoutBtn) {
-          logoutBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (confirm("Apakah anda yakin ingin keluar / switch user?")) {
-              localStorage.removeItem("currentUser");
-              window.location.href = "login.html";
-            }
-          });
-        }
-      });
-    </script>
-
-    <!-- Penghubung ke JavaScript Karyawan -->
+    <!-- Script Karyawan -->
     <script src="js/users.js"></script>
   </body>
 </html>

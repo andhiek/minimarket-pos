@@ -10,52 +10,51 @@
     <script src="js/auth.js"></script>
   </head>
   <body>
-    <!-- Header Navigation -->
+    <!-- Header Navigasi Identik dengan Stock Product -->
     <div class="top-header">
-      <div class="brand-title"><span>📈</span> LAPORAN PENJUALAN</div>
+      <div class="brand-title">📈 Laporan Penjualan</div>
       <nav class="main-nav">
         <a href="index.html">Kasir</a>
         <a href="products.html">Kelola Produk</a>
         <a href="reports.html" class="active">Laporan</a>
-        <button onclick="logoutUser('Anda telah logout.')" class="nav-tab-item" style="cursor: pointer; background: #f38ba8; color: #11111b; border: none">Logout</button>
+        <a href="users.html">Karyawan</a>
       </nav>
     </div>
 
     <!-- Main Workspace Container -->
     <div class="main-wrapper">
       <!-- Toolbar / Filter Control + Import Export -->
-      <div class="toolbar-panel">
-        <div class="filter-controls">
-          <div class="toolbar-group">
-            <label for="report-type">Jenis:</label>
-            <select id="report-type">
+      <div class="toolbar-panel" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 16px">
+        <div class="filter-controls" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <div class="toolbar-group" style="display: flex; align-items: center; gap: 6px">
+            <label for="report-type" style="font-size: 0.85rem">Jenis:</label>
+            <select id="report-type" style="padding: 6px 10px; font-size: 0.85rem">
               <option value="daily">Harian</option>
               <option value="monthly" selected>Bulanan</option>
             </select>
           </div>
 
-          <div class="toolbar-group" id="daily-filter" style="display: none">
-            <label for="date-picker">Tanggal:</label>
-            <input type="date" id="date-picker" />
+          <div class="toolbar-group" id="daily-filter" style="display: none; align-items: center; gap: 6px">
+            <label for="date-picker" style="font-size: 0.85rem">Tanggal:</label>
+            <input type="date" id="date-picker" style="padding: 5px 8px; font-size: 0.85rem" />
           </div>
 
-          <div class="toolbar-group" id="monthly-filter">
-            <label for="month-picker">Bulan:</label>
-            <input type="month" id="month-picker" />
+          <div class="toolbar-group" id="monthly-filter" style="display: flex; align-items: center; gap: 6px">
+            <label for="month-picker" style="font-size: 0.85rem">Bulan:</label>
+            <input type="month" id="month-picker" style="padding: 5px 8px; font-size: 0.85rem" />
           </div>
 
-          <button class="btn-excel btn-primary-action" id="btn-load-report">Tampilkan Laporan</button>
+          <button class="btn-excel btn-primary-action" id="btn-load-report" style="padding: 7px 14px; font-size: 0.85rem">Tampilkan</button>
         </div>
 
         <!-- Area Tombol Import / Export -->
-        <div class="action-controls">
+        <div class="action-controls" style="display: flex; gap: 8px">
           <input type="file" id="import-csv-file" accept=".csv" style="display: none" />
-          <button class="btn-excel btn-secondary-action" id="btn-import-csv" onclick="document.getElementById('import-csv-file').click()">📥 Import CSV</button>
-          <button class="btn-excel btn-success-action" id="btn-export-csv">📤 Export CSV</button>
+          <button class="btn-excel btn-secondary-action" id="btn-import-csv" onclick="document.getElementById('import-csv-file').click()" style="padding: 7px 12px; font-size: 0.85rem">📥 Import</button>
+          <button class="btn-excel btn-success-action" id="btn-export-csv" style="padding: 7px 12px; font-size: 0.85rem">📤 Export</button>
         </div>
       </div>
 
-      <!-- Metric Cards -->
       <!-- Metric Cards Utama (3 Kolom) -->
       <div class="kpi-container">
         <div class="kpi-card tx">
@@ -72,10 +71,8 @@
         </div>
       </div>
 
-      <!-- Rekap Metode Pembayaran (Sejajar Menyamping 4 Kolom) -->
-      <div id="payment-breakdown-container">
-        <!-- Card CASH, QRIS, DEBIT, TRANSFER di-render dinamis oleh JS di sini -->
-      </div>
+      <!-- Rekap Metode Pembayaran -->
+      <div id="payment-breakdown-container"></div>
 
       <!-- Excel / Grid Table Container -->
       <div class="excel-grid-container">
@@ -124,9 +121,7 @@
                 <th class="text-right">Subtotal</th>
               </tr>
             </thead>
-            <tbody id="modal-items-body">
-              <!-- Item transaksi disisipkan di sini -->
-            </tbody>
+            <tbody id="modal-items-body"></tbody>
           </table>
           <hr class="modal-divider" />
           <div class="summary-details">

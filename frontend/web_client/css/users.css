@@ -104,7 +104,8 @@ h1 {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  overflow: hidden;
+  /* overflow: auto; */
+  right: 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
